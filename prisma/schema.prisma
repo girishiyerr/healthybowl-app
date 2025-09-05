@@ -1,0 +1,183 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String?
+  email         String   @unique
+  phone         String?  @unique
+  role          Role     @default(CUSTOMER)
+  emailVerified DateTime?
+  image         String?
+  addresses     Address[]
+  subscriptions Subscription[]
+  accounts      Account[]
+  sessions      Session[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Address {
+  id        String  @id @default(cuid())
+  userId    String
+  line1     String
+  line2     String?
+  city      String
+  state     String
+  pincode   String
+  isDefault Boolean @default(false)
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptions Subscription[]
+}
+
+model SubscriptionPlan {
+  id                  String   @id @default(cuid())
+  name                String   // Weekly, Monthly
+  deliveriesPerCycle  Int      // 6 or 24
+  cycleDays           Int      // 7 or 28
+  active              Boolean  @default(true)
+  subscriptions       Subscription[]
+}
+
+model Product {
+  id        String  @id @default(cuid())
+  name      String  // Fruits, Sprouts
+  sizeMl    Int     // 250 or 500
+  active    Boolean @default(true)
+  pricing   Pricing[]
+}
+
+model Pricing {
+  id            String   @id @default(cuid())
+  productId     String
+  costPerBox    Int      // e.g., 27, 38
+  pricePerBox   Int      // e.g., 50, 80
+  effectiveFrom DateTime @default(now())
+  product       Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model Subscription {
+  id                String      @id @default(cuid())
+  userId            String
+  planId            String
+  addressId         String
+  startDate         DateTime
+  status            SubStatus   @default(ACTIVE)
+  sizeMl            Int         // 250 or 500
+  mixFruits         Int         // boxes per delivery
+  mixSprouts        Int         // boxes per delivery
+  pricePerDelivery  Int         // computed
+  nextBillingDate   DateTime
+  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              SubscriptionPlan @relation(fields: [planId], references: [id])
+  address           Address     @relation(fields: [addressId], references: [id])
+  deliveries        Delivery[]
+  invoices          Invoice[]
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+}
+
+model Delivery {
+  id              String          @id @default(cuid())
+  subscriptionId  String
+  scheduledFor    DateTime
+  status          DeliveryStatus  @default(SCHEDULED)
+  fruitsBoxes     Int
+  sproutsBoxes    Int
+  routeGroup      String?         // pincode-based grouping
+  subscription    Subscription    @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+model Invoice {
+  id              String   @id @default(cuid())
+  subscriptionId  String
+  amount          Int
+  currency        String   @default("INR")
+  paid            Boolean  @default(false)
+  gateway         String   // razorpay/stripe
+  gatewayRef      String?
+  createdAt       DateTime @default(now())
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+}
+
+model Announcement {
+  id        String   @id @default(cuid())
+  title     String
+  content   String
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SeasonalFruit {
+  id        String   @id @default(cuid())
+  name      String
+  image     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum Role { 
+  CUSTOMER 
+  ADMIN 
+}
+
+enum SubStatus { 
+  ACTIVE 
+  PAUSED 
+  CANCELED 
+}
+
+enum DeliveryStatus { 
+  SCHEDULED 
+  DELIVERED 
+  SKIPPED 
+  PAUSED 
+}

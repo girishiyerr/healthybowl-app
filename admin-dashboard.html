@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - HealthyBowl</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .status-pending { @apply bg-yellow-100 text-yellow-800 border-yellow-200; }
+        .status-confirmed { @apply bg-blue-100 text-blue-800 border-blue-200; }
+        .status-preparing { @apply bg-orange-100 text-orange-800 border-orange-200; }
+        .status-out_for_delivery { @apply bg-purple-100 text-purple-800 border-purple-200; }
+        .status-delivered { @apply bg-green-100 text-green-800 border-green-200; }
+        .status-cancelled { @apply bg-red-100 text-red-800 border-red-200; }
+        
+        .status-tab {
+            transition: all 0.2s ease;
+        }
+        .status-tab:hover {
+            transform: translateY(-1px);
+        }
+        
+        /* Table styling */
+        .table-responsive {
+            overflow-x: scroll !important;
+            overflow-y: auto !important;
+            scrollbar-width: auto;
+            scrollbar-color: #6b7280 #f3f4f6;
+            white-space: nowrap;
+            position: relative;
+        }
+        
+        .table-responsive::-webkit-scrollbar {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f3f4f6;
+            border-radius: 8px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #6b7280;
+            border-radius: 8px;
+            border: 2px solid #f3f4f6;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+        
+        .table-responsive::-webkit-scrollbar-corner {
+            background: #f7fafc;
+        }
+        
+        /* Force horizontal scrollbar to always be visible */
+        .table-responsive {
+            scrollbar-gutter: stable;
+        }
+        
+        .table-responsive::-webkit-scrollbar:horizontal {
+            height: 16px;
+        }
+        
+        /* Force scrollbar to always be visible */
+        .table-responsive::after {
+            content: '';
+            display: block;
+            width: 1px;
+            height: 1px;
+            position: absolute;
+            right: -1px;
+            bottom: -1px;
+        }
+        
+        /* Force horizontal scrollbar to always show */
+        .table-responsive {
+            scrollbar-gutter: stable both-edges;
+            overflow-x: scroll !important;
+            overflow-y: auto !important;
+        }
+        
+        /* Force scrollbar visibility with pseudo-element */
+        .table-responsive::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 1px;
+            height: 100%;
+            background: transparent;
+        }
+        
+        /* Webkit scrollbar always visible */
+        .table-responsive::-webkit-scrollbar {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 8px;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb {
+            background: #94a3b8;
+            border-radius: 8px;
+            border: 2px solid #f1f5f9;
+        }
+        
+        .table-responsive::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+        
+        /* Force scrollbar to always be visible - alternative method */
+        .table-responsive {
+            scrollbar-width: auto !important;
+            overflow-x: scroll !important;
+        }
+        
+        /* Add padding to force scrollbar space */
+        .table-responsive::after {
+            content: '';
+            display: block;
+            width: 2000px;
+            height: 1px;
+            background: transparent;
+        }
+        
+        .table th {
+            position: sticky;
+            top: 0;
+            background-color: #f9fafb;
+            z-index: 10;
+        }
+        
+        .table tr:hover {
+            background-color: #f9fafb;
+        }
+        
+        /* Optimize column widths - reasonable widths with horizontal scroll */
+        .table th:nth-child(1), .table td:nth-child(1) { width: 150px; min-width: 150px; } /* Order # */
+        .table th:nth-child(2), .table td:nth-child(2) { width: 300px; min-width: 300px; } /* Customer */
+        .table th:nth-child(3), .table td:nth-child(3) { width: 150px; min-width: 150px; } /* Contact */
+        .table th:nth-child(4), .table td:nth-child(4) { width: 400px; min-width: 400px; } /* Address */
+        .table th:nth-child(5), .table td:nth-child(5) { width: 300px; min-width: 300px; } /* Items */
+        .table th:nth-child(6), .table td:nth-child(6) { width: 120px; min-width: 120px; } /* Amount */
+        .table th:nth-child(7), .table td:nth-child(7) { width: 150px; min-width: 150px; } /* Status */
+        .table th:nth-child(8), .table td:nth-child(8) { width: 200px; min-width: 200px; } /* Time */
+        .table th:nth-child(9), .table td:nth-child(9) { width: 120px; min-width: 120px; } /* Action */
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <h1 class="text-2xl font-bold text-green-600">HealthyBowl Admin</h1>
+                    <span class="ml-3 px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">Dashboard</span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500">Last updated: <span id="lastUpdated">--</span></span>
+                    <button onclick="refreshOrders()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+                        Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="w-full px-2 py-8">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-6 gap-4 mb-6">
+            <div class="bg-white rounded-xl shadow-sm p-4 border">
+                <div class="flex items-center">
+                    <div class="p-2 bg-yellow-100 rounded-lg">
+                        <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Pending Orders</p>
+                        <p class="text-2xl font-bold text-gray-900" id="topPendingCount">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-4 border">
+                <div class="flex items-center">
+                    <div class="p-2 bg-blue-100 rounded-lg">
+                        <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Confirmed</p>
+                        <p class="text-2xl font-bold text-gray-900" id="topConfirmedCount">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-4 border">
+                <div class="flex items-center">
+                    <div class="p-2 bg-orange-100 rounded-lg">
+                        <svg class="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Preparing</p>
+                        <p class="text-2xl font-bold text-gray-900" id="topPreparingCount">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-4 border">
+                <div class="flex items-center">
+                    <div class="p-2 bg-purple-100 rounded-lg">
+                        <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Out for Delivery</p>
+                        <p class="text-2xl font-bold text-gray-900" id="topDeliveryCount">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-4 border">
+                <div class="flex items-center">
+                    <div class="p-2 bg-green-100 rounded-lg">
+                        <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Delivered</p>
+                        <p class="text-2xl font-bold text-gray-900" id="topDeliveredCount">0</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-sm p-4 border">
+                <div class="flex items-center">
+                    <div class="p-2 bg-red-100 rounded-lg">
+                        <svg class="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-600">Cancelled</p>
+                        <p class="text-2xl font-bold text-gray-900" id="topCancelledCount">0</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Management -->
+        <div class="bg-white rounded-xl shadow-sm border">
+            <div class="px-6 py-4 border-b">
+                <h2 class="text-lg font-semibold text-gray-900">Order Management</h2>
+                <p class="text-sm text-gray-600">Click on status tabs to view and manage orders</p>
+            </div>
+            
+            <!-- Status Tabs -->
+            <div class="px-6 py-4 border-b bg-gray-50">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="showStatusTab('pending')" id="tab-pending" 
+                            class="status-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-green-500 text-white shadow-md">
+                        Pending <span id="pendingCount" class="ml-2 bg-white text-green-600 text-xs px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                    <button onclick="showStatusTab('confirmed')" id="tab-confirmed" 
+                            class="status-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200">
+                        Confirmed <span id="confirmedCount" class="ml-2 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                    <button onclick="showStatusTab('preparing')" id="tab-preparing" 
+                            class="status-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200">
+                        Preparing <span id="preparingCount" class="ml-2 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                    <button onclick="showStatusTab('out_for_delivery')" id="tab-out_for_delivery" 
+                            class="status-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200">
+                        Out for Delivery <span id="deliveryCount" class="ml-2 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                    <button onclick="showStatusTab('delivered')" id="tab-delivered" 
+                            class="status-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200">
+                        Delivered <span id="deliveredCount" class="ml-2 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                    <button onclick="showStatusTab('cancelled')" id="tab-cancelled" 
+                            class="status-tab px-4 py-2 rounded-lg text-sm font-medium transition-colors bg-gray-100 text-gray-700 hover:bg-gray-200">
+                        Cancelled <span id="cancelledCount" class="ml-2 bg-gray-500 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Orders Table -->
+            <div class="table-responsive" style="width: 100%; max-height: 70vh; overflow-x: scroll; overflow-y: auto; border: 1px solid #e5e7eb; background: white; scrollbar-width: auto; position: relative;">
+                <!-- Force scrollbar to always show -->
+                <div style="position: absolute; top: 0; left: 0; width: 2000px; height: 1px; background: transparent; pointer-events: none;"></div>
+                <table class="divide-y divide-gray-200" style="width: 2000px; min-width: 2000px; table-layout: fixed; border-collapse: collapse;">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order #</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Address</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ordersTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Orders will be loaded here based on selected tab -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Sales Summary (only shown for delivered orders) -->
+            <div id="salesSummary" class="hidden bg-gradient-to-r from-green-50 to-emerald-50 border-t border-green-200">
+                <div class="px-6 py-6">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-8">
+                            <div class="flex items-center space-x-3">
+                                <div class="p-3 bg-green-100 rounded-full">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-bold text-green-700" id="totalDeliveredOrders">0</div>
+                                    <div class="text-sm font-medium text-green-600">Orders Delivered</div>
+                                </div>
+                            </div>
+                            
+                            <div class="w-px h-12 bg-green-200"></div>
+                            
+                            <div class="flex items-center space-x-3">
+                                <div class="p-3 bg-green-100 rounded-full">
+                                    <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-3xl font-bold text-green-700" id="totalSalesAmount">₹0</div>
+                                    <div class="text-sm font-medium text-green-600">Total Sales Revenue</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="text-right">
+                            <div class="text-sm font-semibold text-green-700 mb-1">Sales Summary</div>
+                            <div class="text-xs text-green-500" id="salesLastUpdated">Last updated: --</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="inline-flex items-center px-4 py-2 font-semibold leading-6 text-sm shadow rounded-md text-gray-500 bg-white">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-gray-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Loading orders...
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div id="emptyState" class="text-center py-12 hidden">
+            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
+            <h3 class="mt-2 text-sm font-medium text-gray-900">No orders found</h3>
+            <p class="mt-1 text-sm text-gray-500">Orders will appear here once customers start placing them.</p>
+        </div>
+    </div>
+
+    <!-- Status Update Modal -->
+    <div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900">Update Order Status</h3>
+                    <button onclick="closeStatusModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="mb-4">
+                    <p class="text-sm text-gray-600">Order: <span id="modalOrderNumber" class="font-medium"></span></p>
+                    <p class="text-sm text-gray-600">Customer: <span id="modalCustomerName" class="font-medium"></span></p>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">New Status</label>
+                    <select id="statusSelect" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="pending">Pending</option>
+                        <option value="confirmed">Confirmed</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="out_for_delivery">Out for Delivery</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                    </select>
+                </div>
+                
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+                    <textarea id="statusNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Add any notes about this status update..."></textarea>
+                </div>
+                
+                <div class="flex justify-end space-x-3">
+                    <button onclick="closeStatusModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors">
+                        Cancel
+                    </button>
+                    <button onclick="updateOrderStatus()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
+                        Update Status
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Address Modal -->
+    <div id="addressModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-medium text-gray-900" id="addressModalTitle">Delivery Address</h3>
+                    <button onclick="closeAddressModal()" class="text-gray-400 hover:text-gray-600">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+                <div class="mt-2">
+                    <p class="text-sm text-gray-600 mb-2">Order: <span id="addressOrderNumber" class="font-medium"></span></p>
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <p class="text-sm text-gray-900 whitespace-pre-wrap" id="addressModalContent"></p>
+                    </div>
+                </div>
+                <div class="mt-4 flex justify-end">
+                    <button onclick="closeAddressModal()" class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md text-sm font-medium">
+                        Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed top-4 right-4 z-50 transform translate-x-full transition-transform duration-300 ease-in-out">
+        <div class="bg-white rounded-lg shadow-lg border-l-4 p-4 max-w-sm">
+            <div class="flex items-center">
+                <div id="toastIcon" class="flex-shrink-0">
+                    <!-- Icon will be inserted here -->
+                </div>
+                <div class="ml-3">
+                    <p id="toastTitle" class="text-sm font-medium text-gray-900"></p>
+                    <p id="toastMessage" class="text-sm text-gray-500"></p>
+                </div>
+                <button onclick="hideToast()" class="ml-4 flex-shrink-0 text-gray-400 hover:text-gray-600">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4'
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+        let currentOrderId = null
+        let orders = []
+        let currentStatusTab = 'pending'
+
+        // Load orders on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadOrders()
+            updateLastUpdated()
+            showStatusTab('pending') // Show pending orders by default
+        })
+
+        // Load orders from database
+        async function loadOrders() {
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select(`
+                        id,
+                        order_number,
+                        customer_email,
+                        customer_first_name,
+                        customer_last_name,
+                        customer_phone,
+                        status,
+                        payment_status,
+                        total_amount,
+                        created_at,
+                        billing_address,
+                        order_items(id, quantity, product_name, product_size_ml, plan_type, unit_price)
+                    `)
+                    .order('created_at', { ascending: false })
+                    .limit(50)
+
+                if (error) throw error
+
+                orders = data || []
+                displayOrders()
+                updateLastUpdated()
+
+            } catch (error) {
+                console.error('Error loading orders:', error)
+                showError('Failed to load orders: ' + error.message)
+            }
+        }
+
+        // Display orders in tabbed interface
+        function displayOrders() {
+            const loadingState = document.getElementById('loadingState')
+            const emptyState = document.getElementById('emptyState')
+
+            if (orders.length === 0) {
+                loadingState.classList.add('hidden')
+                emptyState.classList.remove('hidden')
+                return
+            }
+
+            loadingState.classList.add('hidden')
+            emptyState.classList.add('hidden')
+
+            // Update tab counts and show current tab
+            updateTabCounts()
+            showStatusTab(currentStatusTab)
+        }
+
+        // Show orders for specific status tab
+        function showStatusTab(status) {
+            currentStatusTab = status
+            
+            // Update tab button styles - remove active styling from all tabs
+            document.querySelectorAll('.status-tab').forEach(tab => {
+                tab.classList.remove('bg-green-500', 'text-white', 'shadow-md')
+                tab.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200')
+                
+                // Reset count badge styling for inactive tabs
+                const countBadge = tab.querySelector('span')
+                if (countBadge) {
+                    countBadge.classList.remove('bg-white', 'text-green-600')
+                    countBadge.classList.add('bg-gray-500', 'text-white')
+                }
+            })
+            
+            // Add active styling to clicked tab
+            const activeTab = document.getElementById(`tab-${status}`)
+            activeTab.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200')
+            activeTab.classList.add('bg-green-500', 'text-white', 'shadow-md')
+            
+            // Update count badge styling for active tab
+            const activeCountBadge = activeTab.querySelector('span')
+            if (activeCountBadge) {
+                activeCountBadge.classList.remove('bg-gray-500', 'text-white')
+                activeCountBadge.classList.add('bg-white', 'text-green-600')
+            }
+            
+            // Filter orders by status
+            const filteredOrders = orders.filter(order => order.status === status)
+            const ordersTableBody = document.getElementById('ordersTableBody')
+            const salesSummary = document.getElementById('salesSummary')
+            
+            // Show/hide sales summary based on status
+            if (status === 'delivered') {
+                salesSummary.classList.remove('hidden')
+                updateSalesSummary(filteredOrders)
+            } else {
+                salesSummary.classList.add('hidden')
+            }
+            
+            if (filteredOrders.length === 0) {
+                ordersTableBody.innerHTML = `
+                    <tr>
+                        <td colspan="9" class="px-6 py-12 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No ${getStatusDisplayName(status)} orders</h3>
+                            <p class="mt-1 text-sm text-gray-500">Orders with this status will appear here.</p>
+                        </td>
+                    </tr>
+                `
+            } else {
+                ordersTableBody.innerHTML = filteredOrders.map(order => createOrderRow(order)).join('')
+            }
+        }
+
+        // Update sales summary for delivered orders
+        function updateSalesSummary(deliveredOrders) {
+            const totalOrders = deliveredOrders.length
+            const totalSales = deliveredOrders.reduce((sum, order) => sum + (order.total_amount || 0), 0)
+            
+            document.getElementById('totalDeliveredOrders').textContent = totalOrders
+            document.getElementById('totalSalesAmount').textContent = `₹${totalSales.toFixed(2)}`
+            document.getElementById('salesLastUpdated').textContent = `Last updated: ${new Date().toLocaleTimeString()}`
+        }
+
+        // Update tab counts
+        function updateTabCounts() {
+            const stats = {
+                pending: orders.filter(o => o.status === 'pending').length,
+                confirmed: orders.filter(o => o.status === 'confirmed').length,
+                preparing: orders.filter(o => o.status === 'preparing').length,
+                out_for_delivery: orders.filter(o => o.status === 'out_for_delivery').length,
+                delivered: orders.filter(o => o.status === 'delivered').length,
+                cancelled: orders.filter(o => o.status === 'cancelled').length
+            }
+
+            // Update tab counts (in the order management section)
+            document.getElementById('pendingCount').textContent = stats.pending
+            document.getElementById('confirmedCount').textContent = stats.confirmed
+            document.getElementById('preparingCount').textContent = stats.preparing
+            document.getElementById('deliveryCount').textContent = stats.out_for_delivery
+            document.getElementById('deliveredCount').textContent = stats.delivered
+            document.getElementById('cancelledCount').textContent = stats.cancelled
+            
+            // Update top stats cards
+            document.getElementById('topPendingCount').textContent = stats.pending
+            document.getElementById('topConfirmedCount').textContent = stats.confirmed
+            document.getElementById('topPreparingCount').textContent = stats.preparing
+            document.getElementById('topDeliveryCount').textContent = stats.out_for_delivery
+            document.getElementById('topDeliveredCount').textContent = stats.delivered
+            document.getElementById('topCancelledCount').textContent = stats.cancelled
+        }
+
+        // Create order row for table
+        function createOrderRow(order) {
+            // Format address
+            const address = order.billing_address
+            let addressText = ''
+            if (address) {
+                if (address.street) {
+                    addressText = `${address.street}`
+                    if (address.city) addressText += `, ${address.city}`
+                    if (address.state) addressText += `, ${address.state}`
+                    if (address.pincode) addressText += ` - ${address.pincode}`
+                    if (address.landmark) addressText += ` (${address.landmark})`
+                } else if (address.line1) {
+                    addressText = address.line1
+                    if (address.line2) addressText += `, ${address.line2}`
+                    if (address.pincode) addressText += ` - ${address.pincode}`
+                } else {
+                    addressText = 'Address not provided'
+                }
+            } else {
+                addressText = 'Address not provided'
+            }
+
+            // Format items summary
+            const itemsCount = order.order_items ? order.order_items.length : 0
+            const itemsText = order.order_items ? order.order_items.map(item => 
+                `${item.quantity}x ${item.product_name || 'Item'} (${item.product_size_ml}ml ${item.plan_type})`
+            ).join(', ') : 'No items'
+
+            // Format time
+            const orderTime = new Date(order.created_at)
+            const timeText = `${orderTime.toLocaleDateString()} ${orderTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`
+
+            return `
+                <tr class="hover:bg-gray-50 cursor-pointer" onclick="openStatusModal('${order.id}', '${order.order_number}', '${order.customer_first_name} ${order.customer_last_name}', '${order.status}')">
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${order.order_number}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">${order.customer_first_name} ${order.customer_last_name}</div>
+                        <div class="text-sm text-gray-500">${order.customer_email}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm text-gray-900">${order.customer_phone || 'N/A'}</div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900 max-w-xs truncate cursor-pointer hover:text-blue-600 hover:underline" 
+                             title="Click to view full address" 
+                             onclick="event.stopPropagation(); showFullAddress('${order.order_number}', '${addressText.replace(/'/g, "\\'")}')">
+                            ${addressText}
+                        </div>
+                    </td>
+                    <td class="px-6 py-4">
+                        <div class="text-sm text-gray-900">${itemsCount} item${itemsCount !== 1 ? 's' : ''}</div>
+                        <div class="text-xs text-gray-500 max-w-xs truncate" title="${itemsText}">${itemsText}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="text-sm font-medium text-gray-900">₹${order.total_amount.toFixed(2)}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium status-${order.status}">
+                            ${getStatusDisplayName(order.status)}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        ${timeText}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button class="text-green-600 hover:text-green-900 transition-colors" onclick="event.stopPropagation(); openStatusModal('${order.id}', '${order.order_number}', '${order.customer_first_name} ${order.customer_last_name}', '${order.status}')">
+                            Update →
+                        </button>
+                    </td>
+                </tr>
+            `
+        }
+
+
+        // Get display name for status
+        function getStatusDisplayName(status) {
+            const statusMap = {
+                'pending': 'Pending',
+                'confirmed': 'Confirmed',
+                'preparing': 'Preparing',
+                'out_for_delivery': 'Out for Delivery',
+                'delivered': 'Delivered',
+                'cancelled': 'Cancelled'
+            }
+            return statusMap[status] || status
+        }
+
+        // Open status update modal
+        function openStatusModal(orderId, orderNumber, customerName, currentStatus) {
+            currentOrderId = orderId
+            document.getElementById('modalOrderNumber').textContent = orderNumber
+            document.getElementById('modalCustomerName').textContent = customerName
+            document.getElementById('statusSelect').value = currentStatus
+            document.getElementById('statusNotes').value = ''
+            document.getElementById('statusModal').classList.remove('hidden')
+        }
+
+        // Close status update modal
+        function closeStatusModal() {
+            document.getElementById('statusModal').classList.add('hidden')
+            currentOrderId = null
+        }
+
+        // Show full address modal
+        function showFullAddress(orderNumber, address) {
+            document.getElementById('addressOrderNumber').textContent = orderNumber
+            document.getElementById('addressModalContent').textContent = address
+            document.getElementById('addressModal').classList.remove('hidden')
+        }
+
+        // Close address modal
+        function closeAddressModal() {
+            document.getElementById('addressModal').classList.add('hidden')
+        }
+
+        // Update order status
+        async function updateOrderStatus() {
+            if (!currentOrderId) return
+
+            const newStatus = document.getElementById('statusSelect').value
+            const notes = document.getElementById('statusNotes').value
+
+            try {
+                // Get order number for the function
+                const order = orders.find(o => o.id === currentOrderId)
+                if (!order) throw new Error('Order not found')
+
+                // Update order status directly
+                const { data: updateData, error: updateError } = await supabase
+                    .from('orders')
+                    .update({ 
+                        status: newStatus,
+                        updated_at: new Date().toISOString(),
+                        // Update specific timestamp based on status
+                        confirmed_at: newStatus === 'confirmed' ? new Date().toISOString() : null,
+                        preparing_at: newStatus === 'preparing' ? new Date().toISOString() : null,
+                        out_for_delivery_at: newStatus === 'out_for_delivery' ? new Date().toISOString() : null,
+                        delivered_at: newStatus === 'delivered' ? new Date().toISOString() : null,
+                        cancelled_at: newStatus === 'cancelled' ? new Date().toISOString() : null
+                    })
+                    .eq('order_number', order.order_number)
+                    .select()
+
+                if (updateError) throw updateError
+
+                if (updateData && updateData.length > 0) {
+                    // Add to status history
+                    const { error: historyError } = await supabase
+                        .from('order_status_history')
+                        .insert({
+                            order_id: order.id,
+                            status: newStatus,
+                            notes: notes || null,
+                            created_by: 'admin'
+                        })
+                    
+                    if (historyError) {
+                        console.warn('Failed to add status history:', historyError)
+                    }
+                    
+                    closeStatusModal()
+                    // Wait a moment for the database to update, then refresh
+                    setTimeout(() => {
+                        loadOrders()
+                    }, 500)
+                    showSuccess(`Order status updated to ${getStatusDisplayName(newStatus)}`)
+                } else {
+                    throw new Error('Failed to update order status')
+                }
+
+            } catch (error) {
+                console.error('Error updating order status:', error)
+                showError('Failed to update order status: ' + error.message)
+            }
+        }
+
+        // Refresh orders
+        function refreshOrders() {
+            loadOrders()
+        }
+
+        // Update last updated time
+        function updateLastUpdated() {
+            document.getElementById('lastUpdated').textContent = new Date().toLocaleTimeString()
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            showToast('success', 'Success!', message)
+        }
+
+        // Show error message
+        function showError(message) {
+            showToast('error', 'Error', message)
+        }
+
+        // Show toast notification
+        function showToast(type, title, message) {
+            const toast = document.getElementById('toast')
+            const toastIcon = document.getElementById('toastIcon')
+            const toastTitle = document.getElementById('toastTitle')
+            const toastMessage = document.getElementById('toastMessage')
+            
+            // Set icon based on type
+            if (type === 'success') {
+                toastIcon.innerHTML = `
+                    <svg class="w-5 h-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                `
+                toast.querySelector('.border-l-4').classList.add('border-green-400')
+            } else if (type === 'error') {
+                toastIcon.innerHTML = `
+                    <svg class="w-5 h-5 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                `
+                toast.querySelector('.border-l-4').classList.add('border-red-400')
+            }
+            
+            toastTitle.textContent = title
+            toastMessage.textContent = message
+            
+            // Show toast
+            toast.classList.remove('translate-x-full')
+            toast.classList.add('translate-x-0')
+            
+            // Auto hide after 5 seconds
+            setTimeout(() => {
+                hideToast()
+            }, 5000)
+        }
+
+        // Hide toast notification
+        function hideToast() {
+            const toast = document.getElementById('toast')
+            toast.classList.remove('translate-x-0')
+            toast.classList.add('translate-x-full')
+        }
+
+        // Test function to directly update order status
+        async function testDirectUpdate() {
+            try {
+                console.log('Testing direct update...')
+                const { data, error } = await supabase
+                    .from('orders')
+                    .update({ 
+                        status: 'confirmed',
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('order_number', 'HB-20250905-0001')
+                    .select()
+
+                console.log('Direct update result:', { data, error })
+                console.log('Data length:', data ? data.length : 'null')
+                
+                if (data && data.length > 0) {
+                    console.log('Update successful!')
+                } else {
+                    console.log('Update failed - no rows updated')
+                }
+            } catch (error) {
+                console.error('Direct update error:', error)
+            }
+        }
+
+        // Auto-refresh every 30 seconds
+        setInterval(() => {
+            loadOrders()
+        }, 30000)
+    </script>
+</body>
+</html>

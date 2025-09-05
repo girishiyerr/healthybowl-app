@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - HealthyBowl</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .form-input {
+            transition: all 0.3s ease;
+        }
+        .form-input:focus {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(34, 197, 94, 0.15);
+        }
+        .required::after {
+            content: " *";
+            color: #ef4444;
+        }
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <!-- Logo -->
+                <div class="flex items-center">
+                    <img src="/Users/girishiyer/Documents/SDE Projects : Side Business/HealthyBowl/Untitled design.png"
+                         alt="HealthyBowl Logo"
+                         class="h-36 w-auto object-contain -mb-3">
+                </div>
+
+                <!-- Navigation Menu -->
+                <nav class="hidden md:flex space-x-8">
+                    <a href="simple-demo.html" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Home</a>
+                    <a href="simple-demo.html#plans" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Our Subscriptions</a>
+                    <a href="about-us.html" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">About Us</a>
+                    <a href="contact-us.html" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Contact Us</a>
+                </nav>
+
+                <!-- Cart Display -->
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <a href="cart.html" class="flex items-center space-x-3 text-gray-600 hover:text-green-600 transition-colors">
+                            <div class="relative">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"></path>
+                                </svg>
+                                <span id="cartCount" class="absolute -top-2 -right-2 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">0</span>
+                            </div>
+                            <span class="hidden sm:block font-semibold text-lg">₹<span id="cartTotal">0</span></span>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="py-16 bg-gradient-to-br from-gray-50 via-white to-green-50 relative overflow-hidden">
+        <!-- Background Decorative Elements -->
+        <div class="absolute inset-0 z-0">
+            <div class="absolute top-10 left-10 w-16 h-16 bg-green-200 rounded-full opacity-20 animate-pulse"></div>
+            <div class="absolute bottom-20 right-16 w-20 h-20 bg-orange-200 rounded-full opacity-20 animate-bounce" style="animation-delay: 1s;"></div>
+            <div class="absolute top-1/2 left-1/4 w-12 h-12 bg-green-300 rounded-full opacity-15 animate-pulse" style="animation-delay: 0.5s;"></div>
+            <div class="absolute top-1/3 right-1/4 w-14 h-14 bg-orange-300 rounded-full opacity-15 animate-bounce" style="animation-delay: 1.5s;"></div>
+        </div>
+
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <!-- Page Header -->
+            <div class="text-center mb-12">
+                <h1 class="text-4xl md:text-5xl font-bold text-green-600 mb-4">Checkout</h1>
+                <p class="text-xl text-gray-600">Complete your order and get fresh, healthy meals delivered</p>
+            </div>
+
+            <!-- Check Delivery Availability -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-8 border border-green-100">
+                <div class="flex items-center mb-4">
+                    <svg class="w-6 h-6 text-red-500 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    </svg>
+                    <h2 class="text-2xl font-bold text-gray-900">Check Delivery Availability</h2>
+                </div>
+                <div class="flex gap-4">
+                    <input type="text" id="pincodeCheck" placeholder="Enter your pincode" 
+                           class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input">
+                    <button onclick="checkDelivery()" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors">
+                        Check
+                    </button>
+                </div>
+                <div id="deliveryStatus" class="mt-3 text-sm hidden"></div>
+            </div>
+
+            <div class="grid lg:grid-cols-2 gap-12">
+                <!-- Billing Details -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 border border-green-100">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Billing Details</h2>
+                    
+                    <form id="checkoutForm" class="space-y-6">
+                        <!-- Name Fields -->
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2 required">First Name</label>
+                                <input type="text" id="firstName" name="firstName" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input"
+                                       placeholder="First Name">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2 required">Last Name</label>
+                                <input type="text" id="lastName" name="lastName" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input"
+                                       placeholder="Last Name">
+                            </div>
+                        </div>
+
+                        <!-- Contact Information -->
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2 required">Email Address</label>
+                                <input type="email" id="email" name="email" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input"
+                                       placeholder="Email Address">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-2 required">Phone</label>
+                                <input type="tel" id="phone" name="phone" required
+                                       class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input"
+                                       placeholder="Phone">
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2 required">Address</label>
+                            <input type="text" id="address1" name="address1" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input mb-3"
+                                   placeholder="House number and street name">
+                            <input type="text" id="address2" name="address2"
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input"
+                                   placeholder="Apartment, suite, unit, etc. (optional)">
+                        </div>
+
+                        <!-- Pincode -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2 required">Pincode</label>
+                            <input type="text" id="pincode" name="pincode" required
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input"
+                                   placeholder="Pincode">
+                        </div>
+
+                        <!-- Delivery Instructions -->
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">Delivery Instructions (Optional)</label>
+                            <textarea id="instructions" name="instructions" rows="3"
+                                      class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 form-input"
+                                      placeholder="Any special delivery instructions..."></textarea>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Order Summary -->
+                <div class="bg-white rounded-2xl shadow-lg p-8 border border-green-100">
+                    <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Order</h2>
+                    
+                    <!-- Order Items -->
+                    <div id="orderItems" class="space-y-4 mb-6">
+                        <!-- Order items will be dynamically loaded here -->
+                    </div>
+
+                    <!-- Order Summary -->
+                    <div class="border-t border-gray-200 pt-6 space-y-3">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Subtotal</span>
+                            <span class="font-semibold text-gray-900">₹<span id="orderSubtotal">0</span></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">GST (5%)</span>
+                            <span class="font-semibold text-gray-900">₹<span id="orderGst">0</span></span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600">Delivery</span>
+                            <span class="font-semibold text-green-600">FREE</span>
+                        </div>
+                        <div class="border-t border-gray-200 pt-3">
+                            <div class="flex justify-between items-center">
+                                <span class="text-xl font-bold text-gray-900">Total</span>
+                                <span class="text-2xl font-bold text-green-600">₹<span id="orderTotal">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Coupon Section -->
+                    <div class="mt-6 p-4 bg-gray-50 rounded-xl">
+                        <p class="text-sm text-gray-600 mb-2">Have a coupon?</p>
+                        <button onclick="toggleCoupon()" class="text-green-600 hover:text-green-800 font-semibold text-sm">
+                            Click here to enter your coupon code
+                        </button>
+                        <div id="couponSection" class="hidden mt-3">
+                            <div class="flex gap-2">
+                                <input type="text" id="couponCode" placeholder="Enter coupon code"
+                                       class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-green-500 focus:border-green-500">
+                                <button onclick="applyCoupon()" class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-green-700 transition-colors">
+                                    Apply
+                                </button>
+                            </div>
+                            <div id="couponMessage" class="mt-2 text-sm hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method -->
+                    <div class="mt-6">
+                        <h3 class="text-lg font-semibold text-gray-900 mb-3">Payment Method</h3>
+                        <div class="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
+                            <span class="text-gray-700">Credit Card/Debit Card/NetBanking</span>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-8 h-5 bg-blue-600 rounded text-white text-xs flex items-center justify-center font-bold">R</div>
+                                <div class="w-8 h-5 bg-green-600 rounded text-white text-xs flex items-center justify-center font-bold">✓</div>
+                                <div class="w-8 h-5 bg-orange-600 rounded text-white text-xs flex items-center justify-center font-bold">P</div>
+                                <span class="text-sm text-gray-600 ml-2">Pay by Razorpay</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Place Order Button -->
+                    <button onclick="placeOrder()" id="placeOrderBtn" disabled
+                            class="w-full mt-8 bg-green-600 text-white py-4 px-6 rounded-xl font-bold text-lg hover:bg-green-700 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl disabled:bg-gray-400 disabled:cursor-not-allowed disabled:transform-none">
+                        <span id="placeOrderText">Place Order</span>
+                        <span id="placeOrderLoading" class="hidden">
+                            <i class="fas fa-spinner fa-spin mr-2"></i>Processing...
+                        </span>
+                    </button>
+
+                    <!-- Security Notice -->
+                    <div class="mt-4 text-center">
+                        <p class="text-xs text-gray-500">🔒 Your payment information is secure and encrypted</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white relative overflow-hidden">
+        <div class="absolute inset-0 z-0">
+            <div class="absolute top-10 left-10 w-16 h-16 bg-green-600 rounded-full opacity-10 animate-pulse"></div>
+            <div class="absolute bottom-20 right-16 w-20 h-20 bg-orange-500 rounded-full opacity-10 animate-bounce" style="animation-delay: 1s;"></div>
+        </div>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div class="py-8 text-center">
+                <p class="text-gray-400">&copy; 2024 HealthyBowl. All rights reserved.</p>
+                <p class="text-gray-500 text-sm mt-1">HealthyBowl Foods Private Limited</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Supabase configuration
+        const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co'
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4'
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey)
+
+        // Global variables
+        let cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || []
+        let appliedCoupon = null
+        let currentUser = null
+
+        // Initialize checkout
+        async function initCheckout() {
+            if (cart.length === 0) {
+                alert('Your cart is empty! Redirecting to cart page...')
+                window.location.href = 'cart.html'
+                return
+            }
+            
+            // Check if user is logged in
+            const { data: { user } } = await supabase.auth.getUser()
+            currentUser = user
+            
+            loadOrderItems()
+            updateOrderSummary()
+            updateCartDisplay()
+            validateForm()
+            
+            // If user is logged in, pre-fill form
+            if (user) {
+                await loadUserData()
+            }
+        }
+
+        // Load user data for logged-in users
+        async function loadUserData() {
+            try {
+                const { data: profile } = await supabase
+                    .from('users')
+                    .select('*')
+                    .eq('id', currentUser.id)
+                    .single()
+                
+                if (profile) {
+                    document.getElementById('firstName').value = profile.first_name || ''
+                    document.getElementById('lastName').value = profile.last_name || ''
+                    document.getElementById('email').value = profile.email || ''
+                    document.getElementById('phone').value = profile.phone || ''
+                }
+                
+                // Load default address
+                const { data: addresses } = await supabase
+                    .from('customer_addresses')
+                    .select('*')
+                    .eq('user_id', currentUser.id)
+                    .eq('is_default', true)
+                    .single()
+                
+                if (addresses) {
+                    document.getElementById('address1').value = addresses.address_line1 || ''
+                    document.getElementById('address2').value = addresses.address_line2 || ''
+                    document.getElementById('pincode').value = addresses.pincode || ''
+                }
+            } catch (error) {
+                console.error('Error loading user data:', error)
+            }
+        }
+
+        // Load order items
+        function loadOrderItems() {
+            const orderItems = document.getElementById('orderItems')
+            orderItems.innerHTML = ''
+
+            cart.forEach(item => {
+                const itemDiv = document.createElement('div')
+                itemDiv.className = 'flex justify-between items-center py-3 border-b border-gray-100'
+                itemDiv.innerHTML = `
+                    <div class="flex-1">
+                        <h4 class="font-semibold text-gray-900">${item.name}</h4>
+                        <p class="text-sm text-gray-600">Fresh fruits and sprouts</p>
+                    </div>
+                    <div class="text-right">
+                        <span class="font-semibold text-gray-900">₹${(item.price * item.quantity).toLocaleString()}</span>
+                        <p class="text-sm text-gray-600">x ${item.quantity}</p>
+                    </div>
+                `
+                orderItems.appendChild(itemDiv)
+            })
+        }
+
+        // Update order summary
+        function updateOrderSummary() {
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+            const gst = subtotal * 0.05
+            const discount = appliedCoupon ? appliedCoupon.discount_amount : 0
+            const total = subtotal + gst - discount
+
+            document.getElementById('orderSubtotal').textContent = subtotal.toLocaleString()
+            document.getElementById('orderGst').textContent = gst.toLocaleString()
+            document.getElementById('orderTotal').textContent = total.toLocaleString()
+        }
+
+        // Update cart display
+        function updateCartDisplay() {
+            const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0)
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+
+            document.getElementById('cartCount').textContent = totalItems
+            document.getElementById('cartTotal').textContent = totalPrice.toLocaleString()
+        }
+
+        // Check delivery availability
+        async function checkDelivery() {
+            const pincode = document.getElementById('pincodeCheck').value.trim()
+            const deliveryStatus = document.getElementById('deliveryStatus')
+            
+            if (!pincode) {
+                deliveryStatus.textContent = 'Please enter a pincode'
+                deliveryStatus.className = 'mt-3 text-sm text-red-600'
+                deliveryStatus.classList.remove('hidden')
+                return
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .rpc('check_delivery_availability', { p_pincode: pincode })
+                
+                if (error) throw error
+                
+                if (data) {
+                    deliveryStatus.textContent = '✅ Delivery available in your area!'
+                    deliveryStatus.className = 'mt-3 text-sm text-green-600'
+                    deliveryStatus.classList.remove('hidden')
+                } else {
+                    deliveryStatus.textContent = '❌ Delivery not available in your area. Please contact support.'
+                    deliveryStatus.className = 'mt-3 text-sm text-red-600'
+                    deliveryStatus.classList.remove('hidden')
+                }
+            } catch (error) {
+                console.error('Error checking delivery:', error)
+                deliveryStatus.textContent = 'Error checking delivery availability. Please try again.'
+                deliveryStatus.className = 'mt-3 text-sm text-red-600'
+                deliveryStatus.classList.remove('hidden')
+            }
+        }
+
+        // Toggle coupon section
+        function toggleCoupon() {
+            const couponSection = document.getElementById('couponSection')
+            couponSection.classList.toggle('hidden')
+        }
+
+        // Apply coupon
+        async function applyCoupon() {
+            const couponCode = document.getElementById('couponCode').value.trim().toUpperCase()
+            const couponMessage = document.getElementById('couponMessage')
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+            
+            if (!couponCode) {
+                couponMessage.textContent = 'Please enter a coupon code'
+                couponMessage.className = 'mt-2 text-sm text-red-600'
+                couponMessage.classList.remove('hidden')
+                return
+            }
+
+            try {
+                const { data, error } = await supabase
+                    .rpc('validate_coupon', {
+                        p_coupon_code: couponCode,
+                        p_order_amount: subtotal
+                    })
+                
+                if (error) throw error
+                
+                if (data.valid) {
+                    appliedCoupon = {
+                        code: couponCode,
+                        discount_amount: data.discount_amount,
+                        description: data.description
+                    }
+                    couponMessage.textContent = `Coupon applied: ${data.description}`
+                    couponMessage.className = 'mt-2 text-sm text-green-600'
+                    couponMessage.classList.remove('hidden')
+                    updateOrderSummary()
+                } else {
+                    couponMessage.textContent = data.message || 'Invalid coupon code'
+                    couponMessage.className = 'mt-2 text-sm text-red-600'
+                    couponMessage.classList.remove('hidden')
+                }
+            } catch (error) {
+                console.error('Error applying coupon:', error)
+                couponMessage.textContent = 'Error applying coupon. Please try again.'
+                couponMessage.className = 'mt-2 text-sm text-red-600'
+                couponMessage.classList.remove('hidden')
+            }
+        }
+
+        // Validate form
+        function validateForm() {
+            const form = document.getElementById('checkoutForm')
+            const placeOrderBtn = document.getElementById('placeOrderBtn')
+            
+            function checkForm() {
+                const requiredFields = form.querySelectorAll('[required]')
+                let allValid = true
+                
+                requiredFields.forEach(field => {
+                    if (!field.value.trim()) {
+                        allValid = false
+                    }
+                })
+                
+                placeOrderBtn.disabled = !allValid
+            }
+            
+            form.addEventListener('input', checkForm)
+            form.addEventListener('change', checkForm)
+        }
+
+        // Place order
+        async function placeOrder() {
+            const form = document.getElementById('checkoutForm')
+            const placeOrderBtn = document.getElementById('placeOrderBtn')
+            const placeOrderText = document.getElementById('placeOrderText')
+            const placeOrderLoading = document.getElementById('placeOrderLoading')
+            
+            // Show loading state
+            placeOrderBtn.disabled = true
+            placeOrderText.classList.add('hidden')
+            placeOrderLoading.classList.remove('hidden')
+            document.body.classList.add('loading')
+            
+            try {
+                const formData = new FormData(form)
+                
+                // Validate form
+                const requiredFields = form.querySelectorAll('[required]')
+                for (let field of requiredFields) {
+                    if (!field.value.trim()) {
+                        throw new Error('Please fill in all required fields')
+                    }
+                }
+                
+                // Collect order data
+                const orderData = {
+                    userId: currentUser?.id || null,
+                    customer: {
+                        email: formData.get('email'),
+                        firstName: formData.get('firstName'),
+                        lastName: formData.get('lastName'),
+                        phone: formData.get('phone'),
+                        address: {
+                            line1: formData.get('address1'),
+                            line2: formData.get('address2'),
+                            pincode: formData.get('pincode')
+                        },
+                        instructions: formData.get('instructions')
+                    },
+                    items: cart,
+                    subtotal: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+                    gst: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0) * 0.05,
+                    discountAmount: appliedCoupon ? appliedCoupon.discount_amount : 0,
+                    coupon: appliedCoupon
+                }
+                
+                // Create order in database
+                const { data: orderId, error: orderError } = await supabase
+                    .rpc('create_order_with_items', {
+                        p_user_id: orderData.userId,
+                        p_customer_email: orderData.customer.email,
+                        p_customer_first_name: orderData.customer.firstName,
+                        p_customer_last_name: orderData.customer.lastName,
+                        p_customer_phone: orderData.customer.phone,
+                        p_billing_address: orderData.customer.address,
+                        p_subtotal: orderData.subtotal,
+                        p_gst_amount: orderData.gst,
+                        p_order_items: orderData.items,
+                        p_discount_amount: orderData.discountAmount,
+                        p_coupon_id: null, // Will be implemented later
+                        p_coupon_code: appliedCoupon?.code || null,
+                        p_delivery_instructions: orderData.customer.instructions
+                    })
+                
+                if (orderError) throw orderError
+                
+                // Save address for logged-in users
+                if (currentUser) {
+                    await supabase
+                        .from('customer_addresses')
+                        .upsert({
+                            user_id: currentUser.id,
+                            address_line1: orderData.customer.address.line1,
+                            address_line2: orderData.customer.address.line2,
+                            pincode: orderData.customer.address.pincode,
+                            is_default: true
+                        })
+                }
+                
+                // Get the order number for tracking
+                const { data: orderData } = await supabase
+                    .from('orders')
+                    .select('order_number')
+                    .eq('id', orderId)
+                    .single()
+                
+                // Show success message
+                alert(`Order placed successfully! Order ID: ${orderData.order_number}`)
+                
+                // Clear cart and redirect to tracking page
+                localStorage.removeItem('healthybowl_cart')
+                window.location.href = `order-tracking.html?tracking_id=${orderData.order_number}`
+                
+            } catch (error) {
+                console.error('Error placing order:', error)
+                alert('Error placing order: ' + error.message)
+            } finally {
+                // Reset loading state
+                placeOrderBtn.disabled = false
+                placeOrderText.classList.remove('hidden')
+                placeOrderLoading.classList.add('hidden')
+                document.body.classList.remove('loading')
+            }
+        }
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', initCheckout)
+    </script>
+</body>
+</html>
