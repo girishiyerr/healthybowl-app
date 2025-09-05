@@ -6,10 +6,21 @@
   "scripts": {
     "start": "echo 'Static site'"
   },
-  "keywords": ["healthy", "food", "delivery"],
+  "keywords": [
+    "healthy",
+    "food",
+    "delivery"
+  ],
   "author": "HealthyBowl",
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0"
+  },
+  "devDependencies": {
+    "live-server": "^1.2.2"
   }
 }
+  "scripts": {
+    "dev": "live-server --port=3000 --open=/homepage",
+    "start": "echo 'Static site'"
+  }
