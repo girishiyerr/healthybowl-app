@@ -4,15 +4,12 @@
   "description": "HealthyBowl - Healthy Food Delivery App",
   "main": "simple-demo.html",
   "scripts": {
-    "start": "echo 'Static site - no build needed'"
+    "start": "echo 'Static site'"
   },
   "keywords": ["healthy", "food", "delivery"],
   "author": "HealthyBowl",
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.38.0"
-  },
-  "devDependencies": {
-    "live-server": "^1.2.2"
   }
 }
