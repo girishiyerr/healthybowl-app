@@ -1,1 +1,17 @@
-/*    /homepage    200
+# Redirect root to homepage
+/    /homepage.html    200
+
+# Clean URL for homepage
+/homepage    /homepage.html    200
+
+# Clean URLs for other pages
+/about    /about-us.html    200
+/contact    /contact-us.html    200
+/cart    /cart.html    200
+/checkout    /checkout.html    200
+/order-tracking    /order-tracking.html    200
+/admin    /admin-dashboard.html    200
+/privacy    /privacy-policy.html    200
+/terms    /terms-of-service.html    200
+/shipping    /shipping-policy.html    200
+/refund    /refund-policy.html    200

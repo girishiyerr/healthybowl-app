@@ -38,14 +38,14 @@
                 <nav class="hidden md:flex space-x-8">
                     <a href="homepage" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Home</a>
                     <a href="homepage#plans" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Our Subscriptions</a>
-                    <a href="about-us.html" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">About Us</a>
-                    <a href="contact-us.html" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Contact Us</a>
+                    <a href="/about" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">About Us</a>
+                    <a href="/contact" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Contact Us</a>
                 </nav>
 
                 <!-- Cart Display -->
                 <div class="flex items-center space-x-4">
                     <div class="relative">
-                        <a href="cart.html" class="flex items-center space-x-3 text-gray-600 hover:text-green-600 transition-colors">
+                        <a href="/cart" class="flex items-center space-x-3 text-gray-600 hover:text-green-600 transition-colors">
                             <div class="relative">
                                 <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M6 20.25a.75.75 0 11-1.5 0 .75.75 0 011.5 0zm12.75 0a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"></path>
@@ -264,7 +264,7 @@
         function initCheckout() {
             if (cart.length === 0) {
                 alert('Your cart is empty! Redirecting to cart page...');
-                window.location.href = 'cart.html';
+                window.location.href = '/cart';
                 return;
             }
             
