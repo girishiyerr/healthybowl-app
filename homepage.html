@@ -105,67 +105,65 @@
         <!-- Decorative Elements -->
         <div class="absolute inset-0 z-0">
             <!-- Top Left Bowl -->
-            <div class="absolute top-10 left-3 w-10 h-10 opacity-100 animate-bounce">
+            <div class="absolute top-4 sm:top-10 left-2 sm:left-3 w-6 h-6 sm:w-10 sm:h-10 opacity-100 animate-bounce">
                 <div class="w-full h-full bg-green-600 rounded-3xl flex items-center justify-center">
-                    <span class="text-5xl text-white">🥗</span>
+                    <span class="text-2xl sm:text-5xl text-white">🥗</span>
                 </div>
             </div>
             
             <!-- Top Right Bowl -->
-            <div class="absolute top-10 right-6 w-10 h-10 opacity-100 animate-bounce">
+            <div class="absolute top-4 sm:top-10 right-3 sm:right-6 w-6 h-6 sm:w-10 sm:h-10 opacity-100 animate-bounce">
                 <div class="w-full h-full bg-green-500 rounded-3xl flex items-center justify-center">
-                    <span class="text-5xl text-white">🍑</span>
+                    <span class="text-2xl sm:text-5xl text-white">🍑</span>
                 </div>
             </div>
             
             <!-- Bottom Left Bowl -->
-            <div class="absolute bottom-14 left-6 w-19 h-19 opacity-85 animate-bounce">
+            <div class="absolute bottom-8 sm:bottom-14 left-3 sm:left-6 w-8 h-8 sm:w-19 sm:h-19 opacity-85 animate-bounce">
                 <div class="w-full h-full bg-green-700 rounded-3xl flex items-center justify-center">
-                    <span class="text-5xl text-white">🌱</span>
+                    <span class="text-3xl sm:text-5xl text-white">🌱</span>
                 </div>
             </div>
             
             <!-- Bottom Right Bowl -->
-            <div class="absolute bottom-14 right-6 w-8 h-8 opacity-100 animate-bounce">
+            <div class="absolute bottom-8 sm:bottom-14 right-3 sm:right-6 w-5 h-5 sm:w-8 sm:h-8 opacity-100 animate-bounce">
                 <div class="w-full h-full bg-green-500 rounded-3xl flex items-center justify-center">
-                    <span class="text-5xl text-white">🍎</span>
+                    <span class="text-2xl sm:text-5xl text-white">🍎</span>
                 </div>
             </div>
             
             <!-- Additional Floating Elements -->
             <!-- Top Center Floating Elements -->
-            <div class="absolute top-8 left-1/2 transform -translate-x-1/2 w-8 h-8 opacity-100 animate-bounce">
+            <div class="absolute top-4 sm:top-8 left-1/2 transform -translate-x-1/2 w-5 h-5 sm:w-8 sm:h-8 opacity-100 animate-bounce">
                 <div class="w-full h-full bg-green-400 rounded-3xl flex items-center justify-center">
-                    <span class="text-4xl text-white">🍓</span>
+                    <span class="text-2xl sm:text-4xl text-white">🍓</span>
                 </div>
             </div>
             
             <!-- Left Side Floating Elements -->
-            
-            <div class="absolute top-32 left-56 w-10 h-10 opacity-80 animate-bounce">
+            <div class="absolute top-20 sm:top-32 left-8 sm:left-56 w-6 h-6 sm:w-10 sm:h-10 opacity-80 animate-bounce">
                 <div class="w-full h-full bg-green-600 rounded-3xl flex items-center justify-center">
-                    <span class="text-4xl text-white">🥒</span>
+                    <span class="text-2xl sm:text-4xl text-white">🥒</span>
                 </div>
             </div>
             
             <!-- Right Side Floating Elements -->
-            
-            <div class="absolute top-28 right-52 w-9 h-9 opacity-85 animate-bounce">
+            <div class="absolute top-16 sm:top-28 right-8 sm:right-52 w-5 h-5 sm:w-9 sm:h-9 opacity-85 animate-bounce">
                 <div class="w-full h-full bg-green-700 rounded-3xl flex items-center justify-center">
-                    <span class="text-4xl text-white">🥬</span>
+                    <span class="text-2xl sm:text-4xl text-white">🥬</span>
                 </div>
             </div>
             
             <!-- Center Floating Elements -->
-            <div class="absolute top-24 left-1/3 w-5 h-5 opacity-90 animate-bounce">
+            <div class="absolute top-12 sm:top-24 left-1/4 sm:left-1/3 w-4 h-4 sm:w-5 sm:h-5 opacity-90 animate-bounce">
                 <div class="w-full h-full bg-green-500 rounded-3xl flex items-center justify-center">
-                    <span class="text-4xl text-white">🫐</span>
+                    <span class="text-xl sm:text-4xl text-white">🫐</span>
                 </div>
             </div>
             
-            <div class="absolute top-36 right-1/3 w-6 h-6 opacity-85 animate-bounce">
+            <div class="absolute top-20 sm:top-36 right-1/4 sm:right-1/3 w-4 h-4 sm:w-6 sm:h-6 opacity-85 animate-bounce">
                 <div class="w-full h-full bg-green-600 rounded-3xl flex items-center justify-center">
-                    <span class="text-4xl text-white">🥝</span>
+                    <span class="text-xl sm:text-4xl text-white">🥝</span>
                 </div>
             </div>
             
@@ -315,7 +313,7 @@
                     </div>
                     
                     <!-- Fruit Grid Display -->
-                    <div id="fruitGrid" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div id="fruitGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
                         <!-- Content will be populated by JavaScript -->
                     </div>
                     
@@ -338,7 +336,27 @@
                     <p class="text-lg text-orange-700">Protein-rich, enzyme-packed, and incredibly nutritious</p>
                 </div>
                 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+                <!-- Sprouts Navigation Controls (Mobile Only) -->
+                <div class="flex justify-center mb-8 sm:hidden">
+                    <div class="bg-white rounded-2xl p-2 shadow-lg border border-orange-100">
+                        <div class="flex space-x-2">
+                            <button id="prevSprout" class="px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-orange-500 hover:text-white">
+                                <svg class="w-4 h-4 inline mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                </svg>
+                                Previous
+                            </button>
+                            <button id="nextSprout" class="px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-orange-500 hover:text-white">
+                                Next
+                                <svg class="w-4 h-4 inline ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="sproutsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
                                 <!-- Green Gram (Moong) -->
             <div class="group bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-orange-100 hover:border-orange-300 overflow-hidden min-h-[500px]">
                 <div class="flex flex-col h-full">
@@ -466,6 +484,13 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+                
+                <!-- Sprouts Page Indicator (Mobile Only) -->
+                <div class="flex justify-center mt-8 sm:hidden">
+                    <div class="bg-white rounded-xl px-4 py-2 shadow-md border border-orange-100">
+                        <span id="sproutsPageIndicator" class="text-sm font-medium text-gray-600">Page 1 of 3</span>
                     </div>
                 </div>
             </div>
@@ -1021,7 +1046,7 @@
             </div>
 
             <!-- Customer Reviews Marquee -->
-            <div class="overflow-hidden">
+            <div class="overflow-hidden px-4 sm:px-0">
                 <div class="relative">
                     <!-- First Marquee -->
                     <div class="flex animate-marquee whitespace-nowrap">
@@ -1969,7 +1994,7 @@
             ];
 
             let currentPage = 0;
-            const fruitsPerPage = 3;
+            const fruitsPerPage = window.innerWidth < 640 ? 1 : 3; // 1 card on mobile, 3 on larger screens
             const totalPages = Math.ceil(fruits.length / fruitsPerPage);
             const fruitGrid = document.getElementById('fruitGrid');
             const pageIndicator = document.getElementById('pageIndicator');
@@ -2045,21 +2070,27 @@
                 `;
             }
 
+            function getFruitsPerPage() {
+                return window.innerWidth < 640 ? 1 : 3; // 1 card on mobile, 3 on larger screens
+            }
+
             function showFruitPage(page) {
                 currentPage = page;
-                const startIndex = page * fruitsPerPage;
-                const endIndex = Math.min(startIndex + fruitsPerPage, fruits.length);
+                const currentFruitsPerPage = getFruitsPerPage();
+                const startIndex = page * currentFruitsPerPage;
+                const endIndex = Math.min(startIndex + currentFruitsPerPage, fruits.length);
                 const pageFruits = fruits.slice(startIndex, endIndex);
                 
                 // Update grid
                 fruitGrid.innerHTML = pageFruits.map(fruit => createFruitCard(fruit)).join('');
                 
                 // Update page indicator
-                pageIndicator.textContent = `Page ${page + 1} of ${totalPages}`;
+                const currentTotalPages = Math.ceil(fruits.length / currentFruitsPerPage);
+                pageIndicator.textContent = `Page ${page + 1} of ${currentTotalPages}`;
                 
                 // Update button states
                 prevFruitBtn.disabled = page === 0;
-                nextFruitBtn.disabled = page === totalPages - 1;
+                nextFruitBtn.disabled = page === currentTotalPages - 1;
                 
                 if (page === 0) {
                     prevFruitBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-100 text-gray-400 cursor-not-allowed';
@@ -2067,7 +2098,7 @@
                     prevFruitBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-green-500 hover:text-white';
                 }
                 
-                if (page === totalPages - 1) {
+                if (page === currentTotalPages - 1) {
                     nextFruitBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-100 text-gray-400 cursor-not-allowed';
                 } else {
                     nextFruitBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-green-500 hover:text-white';
@@ -2075,7 +2106,8 @@
             }
 
             function nextPage() {
-                if (currentPage < totalPages - 1) {
+                const currentTotalPages = Math.ceil(fruits.length / getFruitsPerPage());
+                if (currentPage < currentTotalPages - 1) {
                     showFruitPage(currentPage + 1);
                 }
             }
@@ -2090,6 +2122,19 @@
             nextFruitBtn.addEventListener('click', nextPage);
             prevFruitBtn.addEventListener('click', prevPage);
 
+            // Window resize listener for responsive behavior
+            window.addEventListener('resize', function() {
+                const newFruitsPerPage = getFruitsPerPage();
+                const newTotalPages = Math.ceil(fruits.length / newFruitsPerPage);
+                
+                // Reset to first page if current page would be out of bounds
+                if (currentPage >= newTotalPages) {
+                    currentPage = 0;
+                }
+                
+                showFruitPage(currentPage);
+            });
+
             // Keyboard navigation
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'ArrowLeft') prevPage();
@@ -2098,6 +2143,182 @@
 
             // Initialize fruit grid
             showFruitPage(0);
+
+            // Sprouts Navigation Logic
+            const sprouts = [
+                {
+                    name: 'Green Gram (Moong)',
+                    emoji: '🫘',
+                    description: 'High-protein sprout with live enzymes',
+                    color: 'green',
+                    protein: '24g/100g',
+                    nutrients: [
+                        { name: 'Fiber', value: '16g' },
+                        { name: 'Iron', value: 'High' },
+                        { name: 'Enzymes', value: 'Live' },
+                        { name: 'Digestible', value: 'Easy' }
+                    ]
+                },
+                {
+                    name: 'Chickpea (Chana)',
+                    emoji: '🫛',
+                    description: 'Nutrient-dense sprout with complete proteins',
+                    color: 'yellow',
+                    protein: '20g/100g',
+                    nutrients: [
+                        { name: 'Folate', value: 'High' },
+                        { name: 'Manganese', value: 'Rich' },
+                        { name: 'Protein', value: 'Complete' },
+                        { name: 'Energy', value: 'Sustained' }
+                    ]
+                },
+                {
+                    name: 'Mixed Sprouts',
+                    emoji: '🌱',
+                    description: 'Complete nutrition in one blend',
+                    color: 'red',
+                    protein: '22g/100g',
+                    nutrients: [
+                        { name: 'Variety', value: 'Multi' },
+                        { name: 'Vitamins', value: 'Complete' },
+                        { name: 'Enzymes', value: 'Live' },
+                        { name: 'Balance', value: 'Perfect' }
+                    ]
+                }
+            ];
+
+            let currentSproutPage = 0;
+            const sproutsPerPage = window.innerWidth < 640 ? 1 : 3; // 1 card on mobile, 3 on larger screens
+            const totalSproutPages = Math.ceil(sprouts.length / sproutsPerPage);
+            const sproutsGrid = document.getElementById('sproutsGrid');
+            const sproutsPageIndicator = document.getElementById('sproutsPageIndicator');
+            const prevSproutBtn = document.getElementById('prevSprout');
+            const nextSproutBtn = document.getElementById('nextSprout');
+
+            function getSproutsPerPage() {
+                return window.innerWidth < 640 ? 1 : 3; // 1 card on mobile, 3 on larger screens
+            }
+
+            function createSproutCard(sprout) {
+                const colorClasses = {
+                    green: 'from-green-100 to-green-200',
+                    yellow: 'from-yellow-100 to-yellow-200',
+                    red: 'from-orange-100 to-red-200'
+                };
+                const bgClasses = {
+                    green: 'bg-green-50',
+                    yellow: 'bg-yellow-50',
+                    red: 'bg-red-50'
+                };
+                const textClasses = {
+                    green: 'text-green-600',
+                    yellow: 'text-yellow-600',
+                    red: 'text-red-600'
+                };
+
+                return `
+                    <div class="group bg-white rounded-3xl p-6 shadow-xl hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-2 border border-orange-100 hover:border-orange-300 overflow-hidden min-h-[500px]">
+                        <div class="flex flex-col h-full">
+                            <!-- Sprout Image -->
+                            <div class="flex justify-center mb-6">
+                                <div class="w-20 h-20 bg-gradient-to-br ${colorClasses[sprout.color]} rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                                    <span class="text-5xl">${sprout.emoji}</span>
+                                </div>
+                            </div>
+                            <!-- Nutritional Info -->
+                            <div class="flex-grow flex flex-col">
+                                <h4 class="text-xl font-bold text-gray-900 mb-3 text-center">${sprout.name}</h4>
+                                <p class="text-gray-600 mb-4 text-sm text-center">${sprout.description}</p>
+                                <div class="space-y-3 flex-grow">
+                                    <div class="${bgClasses[sprout.color]} rounded-lg p-3">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-xs text-gray-600">Protein</span>
+                                            <span class="text-sm font-bold ${textClasses[sprout.color]}">${sprout.protein}</span>
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-2">
+                                        ${sprout.nutrients.map(nutrient => `
+                                            <div class="${bgClasses[sprout.color]} rounded-lg p-2 text-center">
+                                                <div class="text-xs text-gray-600 mb-1">${nutrient.name}</div>
+                                                <div class="text-sm font-bold ${textClasses[sprout.color]}">${nutrient.value}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function showSproutPage(page) {
+                currentSproutPage = page;
+                const currentSproutsPerPage = getSproutsPerPage();
+                const startIndex = page * currentSproutsPerPage;
+                const endIndex = Math.min(startIndex + currentSproutsPerPage, sprouts.length);
+                const pageSprouts = sprouts.slice(startIndex, endIndex);
+                
+                // Update grid
+                sproutsGrid.innerHTML = pageSprouts.map(sprout => createSproutCard(sprout)).join('');
+                
+                // Update page indicator
+                const currentTotalPages = Math.ceil(sprouts.length / currentSproutsPerPage);
+                if (sproutsPageIndicator) {
+                    sproutsPageIndicator.textContent = `Page ${page + 1} of ${currentTotalPages}`;
+                }
+                
+                // Update button states
+                if (prevSproutBtn) {
+                    prevSproutBtn.disabled = page === 0;
+                    if (page === 0) {
+                        prevSproutBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-100 text-gray-400 cursor-not-allowed';
+                    } else {
+                        prevSproutBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-orange-500 hover:text-white';
+                    }
+                }
+                
+                if (nextSproutBtn) {
+                    nextSproutBtn.disabled = page === currentTotalPages - 1;
+                    if (page === currentTotalPages - 1) {
+                        nextSproutBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-100 text-gray-400 cursor-not-allowed';
+                    } else {
+                        nextSproutBtn.className = 'px-4 py-2 rounded-xl font-semibold text-sm transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-orange-500 hover:text-white';
+                    }
+                }
+            }
+
+            function nextSproutPage() {
+                const currentTotalPages = Math.ceil(sprouts.length / getSproutsPerPage());
+                if (currentSproutPage < currentTotalPages - 1) {
+                    showSproutPage(currentSproutPage + 1);
+                }
+            }
+
+            function prevSproutPage() {
+                if (currentSproutPage > 0) {
+                    showSproutPage(currentSproutPage - 1);
+                }
+            }
+
+            // Sprouts Event listeners
+            if (nextSproutBtn) nextSproutBtn.addEventListener('click', nextSproutPage);
+            if (prevSproutBtn) prevSproutBtn.addEventListener('click', prevSproutPage);
+
+            // Sprouts Window resize listener
+            window.addEventListener('resize', function() {
+                const newSproutsPerPage = getSproutsPerPage();
+                const newTotalPages = Math.ceil(sprouts.length / newSproutsPerPage);
+                
+                // Reset to first page if current page would be out of bounds
+                if (currentSproutPage >= newTotalPages) {
+                    currentSproutPage = 0;
+                }
+                
+                showSproutPage(currentSproutPage);
+            });
+
+            // Initialize sprouts grid
+            showSproutPage(0);
 
             // Plan Switching Logic
             const weeklyBtn = document.getElementById('weeklyBtn');
