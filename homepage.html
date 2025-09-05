@@ -1,7 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+    <style>
+        @media (min-width: 768px) and (max-width: 1023px) {
+            .cart-container {
+                margin-left: auto;
+                margin-right: 0;
+            }
+            .nav-menu {
+                display: none !important;
+            }
+        }
+    </style>    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HealthyBowl - Fresh Fruits & Sprouts Delivery</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -30,36 +40,35 @@
         <div class="flex justify-between items-center py-4">
             <!-- Logo -->
             <div class="flex items-center">
-                <img src="logo.png" alt="HealthyBowl Logo" class="h-32 sm:h-36 w-auto object-contain -mb-3">
+                <img src="logo.png" alt="HealthyBowl Logo" class="h-36 w-auto object-contain -mb-3">
             </div>
             
             <!-- Navigation Menu -->
-            <nav class="hidden md:flex space-x-4 lg:space-x-8">
-                <a href="/homepage" class="text-gray-600 hover:text-green-600 transition-colors text-sm lg:text-lg font-semibold">Home</a>
-                <a href="#plans" class="text-gray-600 hover:text-green-600 transition-colors text-sm lg:text-lg font-semibold">Our Subscriptions</a>
-                <a href="/about" class="text-gray-600 hover:text-green-600 transition-colors text-sm lg:text-lg font-semibold">About Us</a>
-                <a href="/contact" class="text-gray-600 hover:text-green-600 transition-colors text-sm lg:text-lg font-semibold">Contact Us</a>
-                <a href="/order-tracking" class="text-gray-600 hover:text-green-600 transition-colors text-sm lg:text-lg font-semibold">Track Order</a>
+            <nav class="hidden md:flex space-x-8">
+                <a href="/homepage" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Home</a>
+                <a href="#plans" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Our Subscriptions</a>
+                <a href="/about" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">About Us</a>
+                <a href="/contact" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Contact Us</a>
+                <a href="/order-tracking" class="text-gray-600 hover:text-green-600 transition-colors text-lg font-semibold">Track Order</a>
             </nav>
             
-            <!-- Cart Icon -->
-            <div class="flex items-center space-x-2 lg:space-x-8">
+            <!-- Cart Icon - Only adjust for tablet, keep desktop the same -->
+            <div class="flex items-center space-x-8">
                 <div class="relative">
-                    <a href="/cart" class="flex items-center space-x-1 lg:space-x-3 text-gray-600 hover:text-green-600 transition-colors">
+                    <a href="/cart" class="flex items-center space-x-3 text-gray-600 hover:text-green-600 transition-colors">
                         <div class="relative">
-                            <svg class="w-6 h-6 lg:w-8 lg:h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
                                 <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 3h1.386c.51 0 .955.343 1.087.835l.383 1.437M7.5 14.25a3 3 0 00-3 3h15.75m-12.75-3h11.218c1.121-2.3 2.1-4.684 2.924-7.138a60.114 60.114 0 00-16.536-1.84M7.5 14.25L5.106 5.272M15 15.75a3 3 0 11-6 0 3 3 0 016 0z" />
                             </svg>
-                            <span class="absolute -top-2 -right-2 bg-green-600 text-white text-xs rounded-full w-4 h-4 lg:w-5 lg:h-5 flex items-center justify-center font-bold">0</span>
+                            <span class="absolute -top-2 -right-2 bg-green-600 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">0</span>
                         </div>
-                        <span class="hidden sm:block font-semibold text-sm lg:text-lg">₹0</span>
+                        <span class="hidden sm:block font-semibold text-lg">₹0</span>
                     </a>
                 </div>
             </div>
         </div>
     </div>
-</header>
-    <!-- Marquee -->
+</header>    <!-- Marquee -->
     <div class="bg-green-600 text-white py-2 overflow-hidden">
         <div class="flex animate-marquee whitespace-nowrap">
             <span class="mx-8">🍎 Fresh Fruits Daily</span>
