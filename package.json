@@ -2,15 +2,12 @@
   "name": "healthybowl-app",
   "version": "1.0.0",
   "description": "HealthyBowl - Healthy Food Delivery App",
-  "main": "simple-demo.html",
+  "main": "homepage.html",
   "scripts": {
+    "dev": "live-server --port=3000 --open=/homepage",
     "start": "echo 'Static site'"
   },
-  "keywords": [
-    "healthy",
-    "food",
-    "delivery"
-  ],
+  "keywords": ["healthy", "food", "delivery"],
   "author": "HealthyBowl",
   "license": "MIT",
   "dependencies": {
@@ -20,7 +17,3 @@
     "live-server": "^1.2.2"
   }
 }
-  "scripts": {
-    "dev": "live-server --port=3000 --open=/homepage",
-    "start": "echo 'Static site'"
-  }
