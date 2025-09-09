@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Integration Test - HealthyBowl</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .test-result { 
+            padding: 1rem; 
+            margin: 0.5rem 0; 
+            border-radius: 0.5rem; 
+            border-left: 4px solid;
+        }
+        .test-pass { 
+            background-color: #d1fae5; 
+            border-color: #10b981; 
+            color: #065f46; 
+        }
+        .test-fail { 
+            background-color: #fee2e2; 
+            border-color: #ef4444; 
+            color: #991b1b; 
+        }
+        .test-info { 
+            background-color: #dbeafe; 
+            border-color: #3b82f6; 
+            color: #1e40af; 
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">🗄️ Database Integration Test</h1>
+        
+        <!-- Database Connection Status -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Database Connection</h2>
+            <div id="dbStatus" class="text-gray-500">Checking connection...</div>
+        </div>
+
+        <!-- Test Order Creation -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Test Order Creation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Customer Information</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="firstName" placeholder="First Name" class="w-full p-2 border border-gray-300 rounded-lg" value="Test">
+                        <input type="text" id="lastName" placeholder="Last Name" class="w-full p-2 border border-gray-300 rounded-lg" value="User">
+                        <input type="email" id="email" placeholder="Email" class="w-full p-2 border border-gray-300 rounded-lg" value="test@healthybowl.in">
+                        <input type="tel" id="phone" placeholder="Phone" class="w-full p-2 border border-gray-300 rounded-lg" value="+91 98765 43210">
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Address</h3>
+                    <div class="space-y-3">
+                        <input type="text" id="street" placeholder="Street Address" class="w-full p-2 border border-gray-300 rounded-lg" value="123 Test Street">
+                        <input type="text" id="city" placeholder="City" class="w-full p-2 border border-gray-300 rounded-lg" value="Mumbai">
+                        <input type="text" id="state" placeholder="State" class="w-full p-2 border border-gray-300 rounded-lg" value="Maharashtra">
+                        <input type="text" id="pincode" placeholder="Pincode" class="w-full p-2 border border-gray-300 rounded-lg" value="400001">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6">
+                <h3 class="text-lg font-semibold mb-2">Test Order Items</h3>
+                <div class="space-y-2">
+                    <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                        <span class="font-semibold">250ml Weekly Plan</span>
+                        <span class="text-green-600">₹300</span>
+                        <span class="text-sm text-gray-600">Classic Apple Mix</span>
+                    </div>
+                    <div class="flex items-center space-x-4 p-3 bg-gray-50 rounded-lg">
+                        <span class="font-semibold">500ml Monthly Plan</span>
+                        <span class="text-green-600">₹1920</span>
+                        <span class="text-sm text-gray-600">Antioxidant Power Bowl</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex space-x-4">
+                <button id="createTestOrder" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700">
+                    Create Test Order
+                </button>
+                <button id="viewOrders" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">
+                    View Recent Orders
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="testResults"></div>
+        </div>
+
+        <!-- Orders Display -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h2 class="text-xl font-semibold mb-4">Recent Orders</h2>
+            <div id="ordersDisplay" class="text-gray-500">No orders loaded</div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase Configuration
+        const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4';
+        
+        // Initialize Supabase
+        let supabase = null;
+        
+        // Test Results Container
+        const testResults = document.getElementById('testResults');
+        const ordersDisplay = document.getElementById('ordersDisplay');
+        const dbStatus = document.getElementById('dbStatus');
+
+        // Add Test Result Function
+        function addTestResult(testName, passed, message) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+            resultDiv.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold">${testName}</span>
+                    <span class="text-sm">${passed ? '✅ PASS' : '❌ FAIL'}</span>
+                </div>
+                <div class="text-sm mt-1">${message}</div>
+            `;
+            testResults.appendChild(resultDiv);
+        }
+
+        // Add Info Message
+        function addInfo(message) {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'test-result test-info';
+            infoDiv.innerHTML = `<div class="font-semibold">ℹ️ INFO</div><div class="text-sm mt-1">${message}</div>`;
+            testResults.appendChild(infoDiv);
+        }
+
+        // Check Database Connection
+        async function checkDatabaseConnection() {
+            try {
+                if (!supabaseUrl || supabaseUrl === 'YOUR_SUPABASE_URL') {
+                    dbStatus.innerHTML = '<div class="text-red-600">❌ Supabase not configured. Please update the URL and key.</div>';
+                    addTestResult('Database Connection', false, 'Supabase URL and key not configured');
+                    return false;
+                }
+
+                // Initialize Supabase client
+                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                
+                // Test connection by trying to fetch orders
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .limit(1);
+
+                if (error) {
+                    dbStatus.innerHTML = `<div class="text-red-600">❌ Database Error: ${error.message}</div>`;
+                    addTestResult('Database Connection', false, `Error: ${error.message}`);
+                    return false;
+                }
+
+                dbStatus.innerHTML = '<div class="text-green-600">✅ Database connected successfully</div>';
+                addTestResult('Database Connection', true, 'Successfully connected to database');
+                return true;
+            } catch (error) {
+                dbStatus.innerHTML = `<div class="text-red-600">❌ Connection Error: ${error.message}</div>`;
+                addTestResult('Database Connection', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Create Test Order
+        async function createTestOrder() {
+            try {
+                if (!supabase) {
+                    addTestResult('Create Test Order', false, 'Database not connected');
+                    return;
+                }
+
+                // Get form data
+                const firstName = document.getElementById('firstName').value;
+                const lastName = document.getElementById('lastName').value;
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+                const street = document.getElementById('street').value;
+                const city = document.getElementById('city').value;
+                const state = document.getElementById('state').value;
+                const pincode = document.getElementById('pincode').value;
+
+                // Create billing address
+                const billingAddress = {
+                    street: street,
+                    city: city,
+                    state: state,
+                    pincode: pincode
+                };
+
+                // Create order items
+                const orderItems = [
+                    {
+                        name: "250ml Weekly Plan",
+                        size: 250,
+                        period: "Weekly",
+                        quantity: 1,
+                        price: 300,
+                        fruitMix: "classic-apple",
+                        fruitMixName: "Option 1: Classic Apple Mix (Apple, Orange, Green Grapes, Pomegranate)"
+                    },
+                    {
+                        name: "500ml Monthly Plan",
+                        size: 500,
+                        period: "Monthly",
+                        quantity: 1,
+                        price: 1920,
+                        fruitMix: "antioxidant-power",
+                        fruitMixName: "Option 2: Antioxidant Power Bowl (Pomegranate, Apple, Green Grapes, Kiwi)"
+                    }
+                ];
+
+                // Calculate totals
+                const subtotal = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                const gstAmount = subtotal * 0.18; // 18% GST
+                const totalAmount = subtotal + gstAmount;
+
+                // Call the create_order_with_items function
+                const { data, error } = await supabase.rpc('create_order_with_items', {
+                    p_user_id: null, // You might need to create a user first
+                    p_customer_email: email,
+                    p_customer_first_name: firstName,
+                    p_customer_last_name: lastName,
+                    p_customer_phone: phone,
+                    p_billing_address: billingAddress,
+                    p_subtotal: subtotal,
+                    p_gst_amount: gstAmount,
+                    p_order_items: orderItems
+                });
+
+                if (error) {
+                    addTestResult('Create Test Order', false, `Error: ${error.message}`);
+                    return;
+                }
+
+                addTestResult('Create Test Order', true, `Order created successfully with ID: ${data}`);
+                addInfo(`Order total: ₹${totalAmount.toFixed(2)} (Subtotal: ₹${subtotal}, GST: ₹${gstAmount.toFixed(2)})`);
+                
+                // Refresh orders display
+                await viewRecentOrders();
+
+            } catch (error) {
+                addTestResult('Create Test Order', false, `Error: ${error.message}`);
+            }
+        }
+
+        // View Recent Orders
+        async function viewRecentOrders() {
+            try {
+                if (!supabase) {
+                    addTestResult('View Orders', false, 'Database not connected');
+                    return;
+                }
+
+                const { data, error } = await supabase
+                    .from('order_details')
+                    .select('*')
+                    .order('created_at', { ascending: false })
+                    .limit(5);
+
+                if (error) {
+                    addTestResult('View Orders', false, `Error: ${error.message}`);
+                    return;
+                }
+
+                if (data && data.length > 0) {
+                    let html = '<div class="space-y-4">';
+                    data.forEach(order => {
+                        html += `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h4 class="font-semibold">${order.order_number}</h4>
+                                        <p class="text-sm text-gray-600">${order.customer_first_name} ${order.customer_last_name}</p>
+                                        <p class="text-sm text-gray-600">${order.customer_email}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        <div class="font-semibold text-green-600">₹${order.total_amount}</div>
+                                        <div class="text-sm text-gray-500">${new Date(order.created_at).toLocaleDateString()}</div>
+                                    </div>
+                                </div>
+                                <div class="text-sm text-gray-600">
+                                    <div>Fruit Mix: ${order.fruit_mix_name || 'Not specified'}</div>
+                                    <div>Status: ${order.status}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    html += '</div>';
+                    ordersDisplay.innerHTML = html;
+                    addTestResult('View Orders', true, `Loaded ${data.length} recent orders`);
+                } else {
+                    ordersDisplay.innerHTML = '<div class="text-gray-500">No orders found</div>';
+                    addTestResult('View Orders', true, 'No orders found in database');
+                }
+
+            } catch (error) {
+                addTestResult('View Orders', false, `Error: ${error.message}`);
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('createTestOrder').addEventListener('click', createTestOrder);
+        document.getElementById('viewOrders').addEventListener('click', viewRecentOrders);
+
+        // Initialize
+        checkDatabaseConnection();
+        addInfo('Database test page loaded. Configure Supabase URL and key to test database integration.');
+    </script>
+</body>
+</html>

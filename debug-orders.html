@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debug Orders - HealthyBowl</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">🔍 Debug Orders from Supabase</h1>
+        
+        <div id="status" class="mb-4 p-4 rounded-lg bg-blue-100">
+            <div class="text-blue-800">Loading orders...</div>
+        </div>
+        
+        <div id="results" class="space-y-4"></div>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4';
+
+        function addResult(title, content, isError = false) {
+            const div = document.createElement('div');
+            div.className = `p-4 rounded-lg ${isError ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`;
+            div.innerHTML = `
+                <h3 class="font-bold text-lg mb-2">${title}</h3>
+                <pre class="text-sm overflow-x-auto">${JSON.stringify(content, null, 2)}</pre>
+            `;
+            document.getElementById('results').appendChild(div);
+        }
+
+        async function debugOrders() {
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+            
+            // Clear previous results
+            results.innerHTML = '';
+            
+            try {
+                status.innerHTML = '<div class="text-blue-800">🔄 Initializing Supabase...</div>';
+                
+                // Initialize Supabase
+                const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                
+                // Test 1: Check if orders table exists
+                status.innerHTML = '<div class="text-blue-800">🔄 Checking orders table...</div>';
+                const { data: ordersData, error: ordersError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .limit(5);
+                
+                if (ordersError) {
+                    addResult('❌ Orders Table Error', ordersError, true);
+                } else {
+                    addResult('✅ Orders Table', ordersData);
+                }
+                
+                // Test 2: Check if order_items table exists
+                status.innerHTML = '<div class="text-blue-800">🔄 Checking order_items table...</div>';
+                const { data: itemsData, error: itemsError } = await supabase
+                    .from('order_items')
+                    .select('*')
+                    .limit(5);
+                
+                if (itemsError) {
+                    addResult('❌ Order Items Table Error', itemsError, true);
+                } else {
+                    addResult('✅ Order Items Table', itemsData);
+                }
+                
+                // Test 3: Check if order_details view exists
+                status.innerHTML = '<div class="text-blue-800">🔄 Checking order_details view...</div>';
+                const { data: detailsData, error: detailsError } = await supabase
+                    .from('order_details')
+                    .select('*')
+                    .limit(5);
+                
+                if (detailsError) {
+                    addResult('❌ Order Details View Error', detailsError, true);
+                } else {
+                    addResult('✅ Order Details View', detailsData);
+                }
+                
+                // Test 4: Try to get all orders with items using join
+                status.innerHTML = '<div class="text-blue-800">🔄 Trying manual join...</div>';
+                const { data: joinData, error: joinError } = await supabase
+                    .from('orders')
+                    .select(`
+                        *,
+                        order_items (*)
+                    `)
+                    .limit(5);
+                
+                if (joinError) {
+                    addResult('❌ Manual Join Error', joinError, true);
+                } else {
+                    addResult('✅ Manual Join', joinData);
+                }
+                
+                status.innerHTML = '<div class="text-green-800">✅ Debug complete! Check results above.</div>';
+                
+            } catch (error) {
+                addResult('❌ Unexpected Error', error, true);
+                status.innerHTML = '<div class="text-red-800">❌ Debug failed</div>';
+            }
+        }
+
+        // Auto-run debug on page load
+        debugOrders();
+    </script>
+</body>
+</html>

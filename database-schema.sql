@@ -123,6 +123,8 @@ CREATE TABLE order_items (
     quantity INTEGER NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
     total_price DECIMAL(10,2) NOT NULL,
+    fruit_mix VARCHAR(50), -- Stores the fruit mix selection (classic-apple, antioxidant-power, etc.)
+    fruit_mix_name VARCHAR(255), -- Stores the display name of the fruit mix
     created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
@@ -391,6 +393,31 @@ FROM orders o
 LEFT JOIN order_items oi ON o.id = oi.order_id
 GROUP BY o.id, o.order_number, o.customer_email, o.customer_first_name, o.customer_last_name, o.status, o.payment_status, o.total_amount, o.created_at;
 
+-- Order details view with fruit mix information
+CREATE VIEW order_details AS
+SELECT 
+    o.id as order_id,
+    o.order_number,
+    o.customer_email,
+    o.customer_first_name,
+    o.customer_last_name,
+    o.status,
+    o.payment_status,
+    o.total_amount,
+    o.created_at,
+    oi.id as item_id,
+    oi.product_name,
+    oi.product_size_ml,
+    oi.plan_type,
+    oi.quantity,
+    oi.unit_price,
+    oi.total_price,
+    oi.fruit_mix,
+    oi.fruit_mix_name
+FROM orders o
+LEFT JOIN order_items oi ON o.id = oi.order_id
+ORDER BY o.created_at DESC, oi.created_at ASC;
+
 -- Product catalog view
 CREATE VIEW product_catalog AS
 SELECT 
@@ -473,7 +500,9 @@ BEGIN
             plan_type,
             quantity,
             unit_price,
-            total_price
+            total_price,
+            fruit_mix,
+            fruit_mix_name
         ) VALUES (
             v_order_id,
             v_item->>'name',
@@ -481,7 +510,9 @@ BEGIN
             v_item->>'period',
             (v_item->>'quantity')::INTEGER,
             (v_item->>'price')::DECIMAL,
-            (v_item->>'price')::DECIMAL * (v_item->>'quantity')::INTEGER
+            (v_item->>'price')::DECIMAL * (v_item->>'quantity')::INTEGER,
+            v_item->>'fruitMix',
+            v_item->>'fruitMixName'
         );
     END LOOP;
     
@@ -539,3 +570,16 @@ BEGIN
     );
 END;
 $$ LANGUAGE plpgsql;
+
+-- =============================================
+-- MIGRATION SCRIPTS
+-- =============================================
+
+-- Migration to add fruit mix columns to existing order_items table
+-- Run this if you have an existing database
+-- ALTER TABLE order_items ADD COLUMN IF NOT EXISTS fruit_mix VARCHAR(50);
+-- ALTER TABLE order_items ADD COLUMN IF NOT EXISTS fruit_mix_name VARCHAR(255);
+
+-- Add comments for documentation
+COMMENT ON COLUMN order_items.fruit_mix IS 'Stores the fruit mix selection value (classic-apple, antioxidant-power, citrus-fresh, sweet-crunchy, premium-exotic)';
+COMMENT ON COLUMN order_items.fruit_mix_name IS 'Stores the display name of the selected fruit mix for order details';

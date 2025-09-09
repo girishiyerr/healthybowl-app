@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-2xl mx-auto">
+        <h1 class="text-3xl font-bold mb-6">Supabase Connection Test</h1>
+        
+        <div id="status" class="mb-4 p-4 rounded-lg">
+            <div class="text-gray-600">Testing connection...</div>
+        </div>
+        
+        <div id="results" class="space-y-2"></div>
+        
+        <button id="testBtn" class="mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+            Test Connection
+        </button>
+    </div>
+
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script>
+        const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4';
+
+        function addResult(message, isSuccess = true) {
+            const div = document.createElement('div');
+            div.className = `p-2 rounded ${isSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`;
+            div.textContent = message;
+            document.getElementById('results').appendChild(div);
+        }
+
+        async function testConnection() {
+            const status = document.getElementById('status');
+            const results = document.getElementById('results');
+            
+            // Clear previous results
+            results.innerHTML = '';
+            
+            try {
+                status.innerHTML = '<div class="text-blue-600">🔄 Testing Supabase connection...</div>';
+                
+                // Test 1: Check if Supabase is loaded
+                if (typeof window.supabase === 'undefined') {
+                    addResult('❌ Supabase library not loaded', false);
+                    return;
+                }
+                addResult('✅ Supabase library loaded successfully');
+                
+                // Test 2: Create client
+                const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                addResult('✅ Supabase client created successfully');
+                
+                // Test 3: Test connection by fetching orders
+                status.innerHTML = '<div class="text-blue-600">🔄 Testing database connection...</div>';
+                
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .limit(1);
+                
+                if (error) {
+                    addResult(`❌ Database error: ${error.message}`, false);
+                    status.innerHTML = '<div class="text-red-600">❌ Connection failed</div>';
+                    return;
+                }
+                
+                addResult('✅ Database connection successful');
+                addResult(`📊 Found ${data ? data.length : 0} orders in database`);
+                
+                // Test 4: Test order creation function
+                status.innerHTML = '<div class="text-blue-600">🔄 Testing order creation function...</div>';
+                
+                const { data: functionData, error: functionError } = await supabase.rpc('create_order_with_items', {
+                    p_user_id: null,
+                    p_customer_email: 'test@example.com',
+                    p_customer_first_name: 'Test',
+                    p_customer_last_name: 'User',
+                    p_customer_phone: '+91 98765 43210',
+                    p_billing_address: {
+                        street: '123 Test Street',
+                        city: 'Mumbai',
+                        state: 'Maharashtra',
+                        pincode: '400001'
+                    },
+                    p_subtotal: 100,
+                    p_gst_amount: 18,
+                    p_order_items: [{
+                        name: 'Test Item',
+                        size: 250,
+                        period: 'Weekly',
+                        quantity: 1,
+                        price: 100,
+                        fruitMix: 'classic-apple',
+                        fruitMixName: 'Test Fruit Mix'
+                    }]
+                });
+                
+                if (functionError) {
+                    addResult(`❌ Order creation function error: ${functionError.message}`, false);
+                } else {
+                    addResult('✅ Order creation function works');
+                    addResult(`📝 Test order created with ID: ${functionData}`);
+                }
+                
+                status.innerHTML = '<div class="text-green-600">✅ All tests passed! Supabase is working correctly.</div>';
+                
+            } catch (error) {
+                addResult(`❌ Unexpected error: ${error.message}`, false);
+                status.innerHTML = '<div class="text-red-600">❌ Connection failed</div>';
+            }
+        }
+
+        document.getElementById('testBtn').addEventListener('click', testConnection);
+        
+        // Auto-run test on page load
+        testConnection();
+    </script>
+</body>
+</html>

@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cart Functionality Test - HealthyBowl</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .test-result { 
+            padding: 1rem; 
+            margin: 0.5rem 0; 
+            border-radius: 0.5rem; 
+            border-left: 4px solid;
+        }
+        .test-pass { 
+            background-color: #d1fae5; 
+            border-color: #10b981; 
+            color: #065f46; 
+        }
+        .test-fail { 
+            background-color: #fee2e2; 
+            border-color: #ef4444; 
+            color: #991b1b; 
+        }
+        .test-info { 
+            background-color: #dbeafe; 
+            border-color: #3b82f6; 
+            color: #1e40af; 
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">🛒 Cart Functionality Test</h1>
+        
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Test Controls</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button id="runAllTests" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    Run All Tests
+                </button>
+                <button id="clearCart" class="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700">
+                    Clear Cart
+                </button>
+                <button id="viewCart" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    View Cart
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Subscription Cards -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Test Subscription Cards</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- 250ml Weekly Plan -->
+                <div class="subscription-card border border-gray-200 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">250ml Weekly Plan</h3>
+                    <div class="plan-type text-sm text-gray-600 mb-2">Weekly</div>
+                    <div class="price text-2xl font-bold text-green-600 mb-4">₹300</div>
+                    
+                    <!-- Fruit Mix Selection -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-bold text-orange-800 mb-2">Choose Your Perfect Mix:</h4>
+                        <select id="fruitMix250" class="w-full p-2 text-sm border border-orange-300 rounded-lg bg-white text-orange-700">
+                            <option value="classic-apple">Option 1: Classic Apple Mix (Apple, Orange, Green Grapes, Pomegranate)</option>
+                            <option value="antioxidant-power">Option 2: Antioxidant Power Bowl (Pomegranate, Apple, Green Grapes, Kiwi)</option>
+                            <option value="citrus-fresh">Option 3: Citrus Fresh Blend (Orange, Apple, Green Grapes, Pomegranate)</option>
+                            <option value="sweet-crunchy">Option 4: Sweet & Crunchy Mix (Apple, Green Grapes, Orange, Pineapple)</option>
+                            <option value="premium-exotic">Option 5: Premium Exotic Bowl (Apple, Pomegranate, Kiwi, Pineapple)</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn-card bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 w-full" onclick="testAddToCart('250ml', 250, 300, 'Weekly')">
+                        Add to Cart
+                    </button>
+                </div>
+
+                <!-- 500ml Monthly Plan -->
+                <div class="subscription-card border border-gray-200 rounded-lg p-4">
+                    <h3 class="text-lg font-semibold mb-2">500ml Monthly Plan</h3>
+                    <div class="plan-type text-sm text-gray-600 mb-2">Monthly</div>
+                    <div class="price text-2xl font-bold text-green-600 mb-4">₹1920</div>
+                    
+                    <!-- Fruit Mix Selection -->
+                    <div class="mb-4">
+                        <h4 class="text-sm font-bold text-orange-800 mb-2">Choose Your Perfect Mix:</h4>
+                        <select id="fruitMix500" class="w-full p-2 text-sm border border-orange-300 rounded-lg bg-white text-orange-700">
+                            <option value="classic-apple">Option 1: Classic Apple Mix (Apple, Orange, Green Grapes, Pomegranate)</option>
+                            <option value="antioxidant-power">Option 2: Antioxidant Power Bowl (Pomegranate, Apple, Green Grapes, Kiwi)</option>
+                            <option value="citrus-fresh">Option 3: Citrus Fresh Blend (Orange, Apple, Green Grapes, Pomegranate)</option>
+                            <option value="sweet-crunchy">Option 4: Sweet & Crunchy Mix (Apple, Green Grapes, Orange, Pineapple)</option>
+                            <option value="premium-exotic">Option 5: Premium Exotic Bowl (Apple, Pomegranate, Kiwi, Pineapple)</option>
+                        </select>
+                    </div>
+                    
+                    <button class="btn-card bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 w-full" onclick="testAddToCart('500ml', 500, 1920, 'Monthly')">
+                        Add to Cart
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="testResults"></div>
+        </div>
+
+        <!-- Cart Display -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-8">
+            <h2 class="text-xl font-semibold mb-4">Current Cart</h2>
+            <div id="cartDisplay" class="text-gray-500">Cart is empty</div>
+        </div>
+    </div>
+
+    <script>
+        // Test Results Container
+        const testResults = document.getElementById('testResults');
+        const cartDisplay = document.getElementById('cartDisplay');
+
+        // Test Counter
+        let testCount = 0;
+        let passCount = 0;
+        let failCount = 0;
+
+        // Add Test Result Function
+        function addTestResult(testName, passed, message) {
+            testCount++;
+            if (passed) passCount++;
+            else failCount++;
+
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result ${passed ? 'test-pass' : 'test-fail'}`;
+            resultDiv.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="font-semibold">${testName}</span>
+                    <span class="text-sm">${passed ? '✅ PASS' : '❌ FAIL'}</span>
+                </div>
+                <div class="text-sm mt-1">${message}</div>
+            `;
+            testResults.appendChild(resultDiv);
+        }
+
+        // Add Info Message
+        function addInfo(message) {
+            const infoDiv = document.createElement('div');
+            infoDiv.className = 'test-result test-info';
+            infoDiv.innerHTML = `<div class="font-semibold">ℹ️ INFO</div><div class="text-sm mt-1">${message}</div>`;
+            testResults.appendChild(infoDiv);
+        }
+
+        // Update Cart Display
+        function updateCartDisplay() {
+            const cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+            if (cart.length === 0) {
+                cartDisplay.innerHTML = '<div class="text-gray-500">Cart is empty</div>';
+            } else {
+                let html = '<div class="space-y-2">';
+                cart.forEach((item, index) => {
+                    html += `
+                        <div class="border border-gray-200 rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold">${item.name}</h4>
+                                    <p class="text-sm text-gray-600">${item.period} Plan</p>
+                                    <p class="text-sm text-gray-600">${item.fruitMixName || 'No fruit mix selected'}</p>
+                                    <p class="text-sm text-gray-600">Qty: ${item.quantity}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-semibold text-green-600">₹${(item.price * item.quantity).toFixed(2)}</div>
+                                    <button onclick="removeFromCart(${index})" class="text-red-600 text-sm hover:underline">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                html += `<div class="border-t pt-2 mt-2"><div class="flex justify-between font-semibold"><span>Total:</span><span class="text-green-600">₹${total.toFixed(2)}</span></div></div>`;
+                html += '</div>';
+                cartDisplay.innerHTML = html;
+            }
+        }
+
+        // Remove from Cart
+        function removeFromCart(index) {
+            const cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+            cart.splice(index, 1);
+            localStorage.setItem('healthybowl_cart', JSON.stringify(cart));
+            updateCartDisplay();
+            addInfo(`Removed item at index ${index} from cart`);
+        }
+
+        // Test 1: Check if addToCart function exists
+        function testAddToCartFunction() {
+            try {
+                if (typeof addToCart === 'function') {
+                    addTestResult('Add to Cart Function Exists', true, 'addToCart function is defined');
+                    return true;
+                } else {
+                    addTestResult('Add to Cart Function Exists', false, 'addToCart function is not defined');
+                    return false;
+                }
+            } catch (error) {
+                addTestResult('Add to Cart Function Exists', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Test 2: Test adding item to cart
+        function testAddItemToCart() {
+            try {
+                // Clear cart first
+                localStorage.removeItem('healthybowl_cart');
+                
+                // Test adding 250ml weekly plan
+                addToCart('250ml', 250, 300, 'Weekly');
+                
+                const cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+                if (cart.length === 1 && cart[0].name === '250ml (Weekly Plan)') {
+                    addTestResult('Add Item to Cart', true, 'Successfully added 250ml Weekly Plan to cart');
+                    return true;
+                } else {
+                    addTestResult('Add Item to Cart', false, `Expected 1 item in cart, got ${cart.length}. Cart: ${JSON.stringify(cart)}`);
+                    return false;
+                }
+            } catch (error) {
+                addTestResult('Add Item to Cart', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Test 3: Test fruit mix selection
+        function testFruitMixSelection() {
+            try {
+                // Clear cart first
+                localStorage.removeItem('healthybowl_cart');
+                
+                // Test adding with fruit mix
+                addToCart('500ml', 500, 1920, 'Monthly');
+                
+                const cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+                if (cart.length === 1 && cart[0].fruitMix && cart[0].fruitMixName) {
+                    addTestResult('Fruit Mix Selection', true, `Fruit mix selected: ${cart[0].fruitMixName}`);
+                    return true;
+                } else {
+                    addTestResult('Fruit Mix Selection', false, `Fruit mix not properly selected. Cart: ${JSON.stringify(cart)}`);
+                    return false;
+                }
+            } catch (error) {
+                addTestResult('Fruit Mix Selection', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Test 4: Test cart persistence
+        function testCartPersistence() {
+            try {
+                const cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+                if (cart.length > 0) {
+                    addTestResult('Cart Persistence', true, `Cart persisted with ${cart.length} items`);
+                    return true;
+                } else {
+                    addTestResult('Cart Persistence', false, 'Cart is empty after adding items');
+                    return false;
+                }
+            } catch (error) {
+                addTestResult('Cart Persistence', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Test 5: Test cart modal display
+        function testCartModalDisplay() {
+            try {
+                if (typeof showCartModal === 'function') {
+                    addTestResult('Cart Modal Function', true, 'showCartModal function is defined');
+                    return true;
+                } else {
+                    addTestResult('Cart Modal Function', false, 'showCartModal function is not defined');
+                    return false;
+                }
+            } catch (error) {
+                addTestResult('Cart Modal Function', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Test 6: Test cart update display
+        function testCartUpdateDisplay() {
+            try {
+                if (typeof updateCartDisplay === 'function') {
+                    addTestResult('Cart Update Display Function', true, 'updateCartDisplay function is defined');
+                    return true;
+                } else {
+                    addTestResult('Cart Update Display Function', false, 'updateCartDisplay function is not defined');
+                    return false;
+                }
+            } catch (error) {
+                addTestResult('Cart Update Display Function', false, `Error: ${error.message}`);
+                return false;
+            }
+        }
+
+        // Run All Tests
+        function runAllTests() {
+            // Clear previous results
+            testResults.innerHTML = '';
+            testCount = 0;
+            passCount = 0;
+            failCount = 0;
+
+            addInfo('Starting cart functionality tests...');
+
+            // Run tests
+            testAddToCartFunction();
+            testAddItemToCart();
+            testFruitMixSelection();
+            testCartPersistence();
+            testCartModalDisplay();
+            testCartUpdateDisplay();
+
+            // Summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = `test-result ${failCount === 0 ? 'test-pass' : 'test-fail'}`;
+            summaryDiv.innerHTML = `
+                <div class="font-bold text-lg">Test Summary</div>
+                <div class="text-sm mt-1">
+                    Total Tests: ${testCount} | 
+                    Passed: ${passCount} | 
+                    Failed: ${failCount} | 
+                    Success Rate: ${((passCount / testCount) * 100).toFixed(1)}%
+                </div>
+            `;
+            testResults.appendChild(summaryDiv);
+
+            // Update cart display
+            updateCartDisplay();
+        }
+
+        // Clear Cart
+        function clearCart() {
+            localStorage.removeItem('healthybowl_cart');
+            updateCartDisplay();
+            addInfo('Cart cleared successfully');
+        }
+
+        // View Cart
+        function viewCart() {
+            if (typeof showCartModal === 'function') {
+                showCartModal();
+            } else {
+                addInfo('Cart modal function not available. Showing cart data in console.');
+                console.log('Cart Data:', JSON.parse(localStorage.getItem('healthybowl_cart')) || []);
+            }
+        }
+
+        // Event Listeners
+        document.getElementById('runAllTests').addEventListener('click', runAllTests);
+        document.getElementById('clearCart').addEventListener('click', clearCart);
+        document.getElementById('viewCart').addEventListener('click', viewCart);
+
+        // Initialize
+        updateCartDisplay();
+        addInfo('Cart test page loaded. Click "Run All Tests" to start testing.');
+    </script>
+
+    <!-- Include the actual cart functions from homepage -->
+    <script>
+        // Cart functionality from homepage.html
+        let cartItems = [];
+        let cartTotal = 0;
+
+        function updateCart() {
+            const cartCount = document.querySelector('.cart-count');
+            const cartAmount = document.querySelector('.cart-amount');
+            
+            if (cartCount) {
+                cartCount.textContent = cartItems.length;
+            }
+            if (cartAmount) {
+                cartAmount.textContent = `₹${cartTotal.toFixed(2)}`;
+            }
+        }
+
+        function addToCart(planType, size, price, period) {
+            // Get selected fruit mix from dropdown
+            const fruitMixSelect = document.getElementById(`fruitMix${size}`);
+            const selectedFruitMix = fruitMixSelect ? fruitMixSelect.value : 'classic-apple';
+            const fruitMixName = fruitMixSelect ? fruitMixSelect.options[fruitMixSelect.selectedIndex].text : 'Option 1: Classic Apple Mix';
+            
+            // Get existing cart or create new one
+            let cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+            
+            // Check if item already exists with same fruit mix
+            const existingItem = cart.find(cartItem => cartItem.id === `${planType}_${size}_${period}_${selectedFruitMix}`);
+            
+            if (existingItem) {
+                // Update quantity
+                existingItem.quantity += 1;
+            } else {
+                // Create new cart item
+                const item = {
+                    id: `${planType}_${size}_${period}_${selectedFruitMix}`,
+                    name: `${planType} (${period} Plan)`,
+                    price: price,
+                    period: period,
+                    size: size,
+                    planType: planType,
+                    fruitMix: selectedFruitMix,
+                    fruitMixName: fruitMixName,
+                    quantity: 1
+                };
+                cart.push(item);
+            }
+            
+            // Save to localStorage
+            localStorage.setItem('healthybowl_cart', JSON.stringify(cart));
+            
+            // Show notification
+            showNotification(`${planType} (${period} Plan) added to cart!`);
+            
+            // Update cart display
+            updateCartDisplay();
+        }
+
+        function showCartModal() {
+            const cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+            const totalPrice = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+            
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0,0,0,0.5);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            `;
+            
+            const modalContent = document.createElement('div');
+            modalContent.style.cssText = `
+                background: white;
+                padding: 2rem;
+                border-radius: 15px;
+                max-width: 500px;
+                width: 90%;
+                max-height: 80vh;
+                overflow-y: auto;
+            `;
+            
+            let cartHTML = `
+                <h2 style="color: #2d5016; margin-bottom: 1rem;">Your Cart</h2>
+                <div class="cart-items">
+            `;
+            
+            if (cart.length === 0) {
+                cartHTML += `
+                    <div style="text-align: center; padding: 2rem; color: #666;">
+                        <p>Your cart is empty!</p>
+                    </div>
+                `;
+            } else {
+                cart.forEach((item, index) => {
+                    cartHTML += `
+                        <div class="cart-item" style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; border-bottom: 1px solid #eee;">
+                            <div>
+                                <h4 style="color: #2d5016; margin-bottom: 0.25rem;">${item.name}</h4>
+                                <p style="color: #666; font-size: 0.9rem;">${item.period} Plan</p>
+                                <p style="color: #888; font-size: 0.8rem;">${item.fruitMixName || 'Classic Apple Mix'}</p>
+                                <p style="color: #888; font-size: 0.8rem;">Qty: ${item.quantity}</p>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <span style="font-weight: 600; color: #2d5016;">₹${(item.price * item.quantity).toFixed(2)}</span>
+                                <button class="remove-item" data-index="${index}" style="background: #ff6b6b; color: white; border: none; border-radius: 50%; width: 25px; height: 25px; cursor: pointer;">×</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            cartHTML += `
+                </div>
+                <div style="margin-top: 1rem; padding-top: 1rem; border-top: 2px solid #2d5016;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="color: #2d5016;">Total:</h3>
+                        <h3 style="color: #2d5016;">₹${totalPrice.toFixed(2)}</h3>
+                    </div>
+                    <div style="display: flex; gap: 1rem;">
+                        <button class="btn btn-primary" style="flex: 1;">Checkout</button>
+                        <button class="btn btn-secondary" style="flex: 1;">Continue Shopping</button>
+                    </div>
+                </div>
+            `;
+            
+            modalContent.innerHTML = cartHTML;
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
+            
+            // Close modal handlers
+            modal.addEventListener('click', function(e) {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+            
+            // Remove item handlers
+            modalContent.querySelectorAll('.remove-item').forEach((btn) => {
+                btn.addEventListener('click', function() {
+                    const index = parseInt(this.getAttribute('data-index'));
+                    cart.splice(index, 1);
+                    localStorage.setItem('healthybowl_cart', JSON.stringify(cart));
+                    updateCartDisplay();
+                    document.body.removeChild(modal);
+                    if (cart.length > 0) {
+                        showCartModal();
+                    }
+                });
+            });
+            
+            // Checkout handler
+            modalContent.querySelector('.btn-primary').addEventListener('click', function() {
+                showNotification('Checkout functionality coming soon!');
+                document.body.removeChild(modal);
+            });
+            
+            // Continue shopping handler
+            modalContent.querySelector('.btn-secondary').addEventListener('click', function() {
+                document.body.removeChild(modal);
+            });
+        }
+
+        function showNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.textContent = message;
+            notification.style.cssText = `
+                position: fixed;
+                top: 100px;
+                right: 20px;
+                background-color: #2d5016;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                z-index: 10000;
+                transform: translateX(100%);
+                transition: transform 0.3s ease;
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Animate in
+            setTimeout(() => {
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+            
+            // Remove after 3 seconds
+            setTimeout(() => {
+                notification.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
+        }
+
+        function updateCartDisplay() {
+            const cart = JSON.parse(localStorage.getItem('healthybowl_cart')) || [];
+            if (cart.length === 0) {
+                cartDisplay.innerHTML = '<div class="text-gray-500">Cart is empty</div>';
+            } else {
+                let html = '<div class="space-y-2">';
+                cart.forEach((item, index) => {
+                    html += `
+                        <div class="border border-gray-200 rounded-lg p-3">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-semibold">${item.name}</h4>
+                                    <p class="text-sm text-gray-600">${item.period} Plan</p>
+                                    <p class="text-sm text-gray-600">${item.fruitMixName || 'No fruit mix selected'}</p>
+                                    <p class="text-sm text-gray-600">Qty: ${item.quantity}</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="font-semibold text-green-600">₹${(item.price * item.quantity).toFixed(2)}</div>
+                                    <button onclick="removeFromCart(${index})" class="text-red-600 text-sm hover:underline">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+                html += `<div class="border-t pt-2 mt-2"><div class="flex justify-between font-semibold"><span>Total:</span><span class="text-green-600">₹${total.toFixed(2)}</span></div></div>`;
+                html += '</div>';
+                cartDisplay.innerHTML = html;
+            }
+        }
+
+        // Test function for buttons
+        function testAddToCart(planType, size, price, period) {
+            console.log(`Testing add to cart: ${planType}, ${size}, ${price}, ${period}`);
+            addToCart(planType, size, price, period);
+            updateCartDisplay();
+        }
+
+        // Initialize
+        updateCartDisplay();
+    </script>
+</body>
+</html>
