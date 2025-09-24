@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Local Borzo Integration Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="borzo-integration.js"></script>
+    <style>
+        .test-pass { @apply bg-green-100 text-green-800 border-green-200; }
+        .test-fail { @apply bg-red-100 text-red-800 border-red-200; }
+        .test-pending { @apply bg-yellow-100 text-yellow-800 border-yellow-200; }
+        .test-skip { @apply bg-gray-100 text-gray-800 border-gray-200; }
+    </style>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">🧪 Local Borzo Integration Test</h1>
+        
+        <!-- Test Controls -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Local Testing Controls</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <button onclick="runLocalTests()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">
+                    Run Local Tests
+                </button>
+                <button onclick="testSupabaseConnection()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700">
+                    Test Supabase Only
+                </button>
+                <button onclick="testBorzoIntegration()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700">
+                    Test Borzo Integration
+                </button>
+            </div>
+        </div>
+
+        <!-- Test Results -->
+        <div class="bg-white rounded-lg shadow-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">Test Results</h2>
+            <div id="testResults" class="space-y-4">
+                <!-- Test results will be populated here -->
+            </div>
+        </div>
+
+        <!-- Local Test Instructions -->
+        <div class="bg-blue-50 rounded-lg p-6 mt-8">
+            <h2 class="text-xl font-semibold mb-4 text-blue-900">Local Testing Instructions</h2>
+            <div class="text-blue-800 space-y-2">
+                <p><strong>1. Start Local Server:</strong></p>
+                <code class="bg-blue-100 px-2 py-1 rounded">python -m http.server 8000</code>
+                <p><strong>2. Open in Browser:</strong></p>
+                <code class="bg-blue-100 px-2 py-1 rounded">http://localhost:8000/test-local.html</code>
+                <p><strong>3. Test Integration:</strong> Click "Run Local Tests" button</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test results storage
+        let testResults = [];
+        let supabase = null;
+        
+        // Initialize Supabase
+        function initializeSupabase() {
+            if (typeof window.supabase !== 'undefined') {
+                const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4';
+                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                return true;
+            }
+            return false;
+        }
+
+        // Add test result
+        function addTestResult(testName, status, message, details = '') {
+            const result = {
+                name: testName,
+                status: status,
+                message: message,
+                details: details,
+                timestamp: new Date().toLocaleTimeString()
+            };
+            testResults.push(result);
+            updateTestDisplay();
+        }
+
+        // Update test display
+        function updateTestDisplay() {
+            const container = document.getElementById('testResults');
+            container.innerHTML = testResults.map(result => `
+                <div class="border rounded-lg p-4 ${result.status === 'pass' ? 'test-pass' : result.status === 'fail' ? 'test-fail' : result.status === 'skip' ? 'test-skip' : 'test-pending'}">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-semibold">${result.name}</h3>
+                            <p class="text-sm mt-1">${result.message}</p>
+                            ${result.details ? `<p class="text-xs mt-2 opacity-75">${result.details}</p>` : ''}
+                        </div>
+                        <span class="text-sm">${result.timestamp}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Test Supabase connection
+        async function testSupabaseConnection() {
+            addTestResult('Supabase Connection', 'pending', 'Testing Supabase connection...');
+            
+            if (!supabase) {
+                addTestResult('Supabase Connection', 'fail', 'Supabase not initialized');
+                return;
+            }
+            
+            try {
+                const { data, error } = await supabase
+                    .from('orders')
+                    .select('id')
+                    .limit(1);
+                
+                if (error) {
+                    addTestResult('Supabase Connection', 'fail', 'Database connection failed', error.message);
+                } else {
+                    addTestResult('Supabase Connection', 'pass', 'Database connection successful');
+                }
+            } catch (error) {
+                addTestResult('Supabase Connection', 'fail', 'Connection error', error.message);
+            }
+        }
+
+        // Test Borzo integration (without API calls)
+        async function testBorzoIntegration() {
+            addTestResult('Borzo Integration', 'pending', 'Testing Borzo integration setup...');
+            
+            try {
+                // Wait a bit for the script to load
+                await new Promise(resolve => setTimeout(resolve, 500));
+                
+                // Check if BorzoIntegration class exists
+                if (typeof BorzoIntegration === 'undefined') {
+                    addTestResult('Borzo Integration', 'fail', 'BorzoIntegration class not found - make sure borzo-integration.js is in the same directory');
+                    return;
+                }
+                
+                // Test class instantiation
+                const borzoIntegration = new BorzoIntegration();
+                
+                // Check if methods exist
+                if (typeof borzoIntegration.createDeliveryRequest !== 'function') {
+                    addTestResult('Borzo Integration', 'fail', 'createDeliveryRequest method not found');
+                    return;
+                }
+                
+                if (typeof borzoIntegration.getDeliveryStatus !== 'function') {
+                    addTestResult('Borzo Integration', 'fail', 'getDeliveryStatus method not found');
+                    return;
+                }
+                
+                addTestResult('Borzo Integration', 'pass', 'Borzo integration class loaded successfully');
+                
+                // Test callback processing
+                const testCallbackData = {
+                    order_id: 'test123',
+                    status: 'new',
+                    status_text: 'Test status'
+                };
+                
+                const callbackResult = borzoIntegration.processCallback(testCallbackData);
+                
+                if (callbackResult.success) {
+                    addTestResult('Borzo Callback Processing', 'pass', 'Callback processing works correctly');
+                } else {
+                    addTestResult('Borzo Callback Processing', 'fail', 'Callback processing failed', callbackResult.error);
+                }
+                
+            } catch (error) {
+                addTestResult('Borzo Integration', 'fail', 'Integration test error', error.message);
+            }
+        }
+
+        // Test admin dashboard integration
+        async function testAdminDashboardIntegration() {
+            addTestResult('Admin Dashboard Integration', 'pending', 'Testing admin dashboard integration...');
+            
+            try {
+                // Check if admin dashboard functions exist
+                if (typeof createBorzoDeliveryRequest === 'undefined') {
+                    addTestResult('Admin Dashboard Integration', 'skip', 'Admin dashboard functions not available in this context');
+                    return;
+                }
+                
+                addTestResult('Admin Dashboard Integration', 'pass', 'Admin dashboard integration ready');
+                
+            } catch (error) {
+                addTestResult('Admin Dashboard Integration', 'fail', 'Admin dashboard test error', error.message);
+            }
+        }
+
+        // Test order tracking integration
+        async function testOrderTrackingIntegration() {
+            addTestResult('Order Tracking Integration', 'pending', 'Testing order tracking integration...');
+            
+            try {
+                // Check if order tracking functions exist
+                if (typeof populateBorzoTracking === 'undefined') {
+                    addTestResult('Order Tracking Integration', 'skip', 'Order tracking functions not available in this context');
+                    return;
+                }
+                
+                addTestResult('Order Tracking Integration', 'pass', 'Order tracking integration ready');
+                
+            } catch (error) {
+                addTestResult('Order Tracking Integration', 'fail', 'Order tracking test error', error.message);
+            }
+        }
+
+        // Run all local tests
+        async function runLocalTests() {
+            testResults = [];
+            addTestResult('Local Test Suite', 'pending', 'Starting local test suite...');
+            
+            try {
+                await testSupabaseConnection();
+                await testBorzoIntegration();
+                await testAdminDashboardIntegration();
+                await testOrderTrackingIntegration();
+                
+                const passedTests = testResults.filter(r => r.status === 'pass').length;
+                const totalTests = testResults.filter(r => r.status !== 'pending').length;
+                
+                addTestResult('Local Test Suite Complete', 'pass', `Tests completed: ${passedTests}/${totalTests} passed`);
+                
+            } catch (error) {
+                addTestResult('Local Test Suite Error', 'fail', 'Test suite encountered an error', error.message);
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(() => {
+                if (initializeSupabase()) {
+                    addTestResult('Test Suite Initialized', 'pass', 'Ready to run local tests');
+                } else {
+                    addTestResult('Test Suite Initialized', 'fail', 'Supabase library not loaded - please refresh the page');
+                }
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
