@@ -69,13 +69,20 @@
     </div>
 
     <script>
-        // Initialize Supabase
-        const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        // Test results storage
+        // Test results storage - initialize first
         let testResults = [];
+        let supabase = null;
+        
+        // Initialize Supabase when DOM is ready
+        function initializeSupabase() {
+            if (typeof window.supabase !== 'undefined') {
+                const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co';
+                const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTcwNzQyNjIsImV4cCI6MjA3MjY1MDI2Mn0.vgf0wzw8DmDAMUhPPxufVaHfkl5T2trnPqzF6ZHwIJ4';
+                supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+                return true;
+            }
+            return false;
+        }
 
         // Add test result
         function addTestResult(testName, status, message, details = '') {
@@ -147,6 +154,11 @@
         async function testDatabase() {
             addTestResult('Database Connection', 'pending', 'Testing database connection...');
             
+            if (!supabase) {
+                addTestResult('Database Connection', 'fail', 'Supabase not initialized');
+                return;
+            }
+            
             try {
                 // Test basic connection
                 const { data, error } = await supabase
@@ -206,6 +218,11 @@
             
             addTestResult('Test Order Creation', 'pending', 'Creating test order...');
             
+            if (!supabase) {
+                addTestResult('Test Order Creation', 'fail', 'Supabase not initialized');
+                return;
+            }
+            
             try {
                 const [firstName, ...lastNameParts] = customerName.split(' ');
                 const lastName = lastNameParts.join(' ') || 'Customer';
@@ -244,22 +261,36 @@
 
         // Run all tests
         async function runAllTests() {
+            // Clear previous results
             testResults = [];
             addTestResult('Test Suite', 'pending', 'Starting comprehensive test suite...');
             
-            await testDatabase();
-            await testBorzoAPI();
-            await testCallbackURL();
-            
-            const passedTests = testResults.filter(r => r.status === 'pass').length;
-            const totalTests = testResults.filter(r => r.status !== 'pending').length;
-            
-            addTestResult('Test Suite Complete', 'pass', `Tests completed: ${passedTests}/${totalTests} passed`);
+            try {
+                // Run tests sequentially
+                await testDatabase();
+                await testBorzoAPI();
+                await testCallbackURL();
+                
+                // Calculate results
+                const passedTests = testResults.filter(r => r.status === 'pass').length;
+                const totalTests = testResults.filter(r => r.status !== 'pending').length;
+                
+                addTestResult('Test Suite Complete', 'pass', `Tests completed: ${passedTests}/${totalTests} passed`);
+            } catch (error) {
+                addTestResult('Test Suite Error', 'fail', 'Test suite encountered an error', error.message);
+            }
         }
 
         // Initialize
         document.addEventListener('DOMContentLoaded', function() {
-            addTestResult('Test Suite Initialized', 'pass', 'Ready to run tests');
+            // Wait a bit for Supabase to load, then initialize
+            setTimeout(() => {
+                if (initializeSupabase()) {
+                    addTestResult('Test Suite Initialized', 'pass', 'Ready to run tests');
+                } else {
+                    addTestResult('Test Suite Initialized', 'fail', 'Supabase library not loaded - please refresh the page');
+                }
+            }, 1000);
         });
     </script>
 </body>
