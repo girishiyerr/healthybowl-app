@@ -476,11 +476,32 @@ async function confirmStatusUpdate() {
     
     if (order) {
         try {
+            // Prepare update data
+            const updateData = { 
+                status: newStatus,
+                updated_at: new Date().toISOString()
+            };
+
+            // Add timestamp based on status
+            if (newStatus === 'confirmed') {
+                updateData.confirmed_at = new Date().toISOString();
+            } else if (newStatus === 'preparing') {
+                updateData.preparing_at = new Date().toISOString();
+            } else if (newStatus === 'half_ready') {
+                updateData.half_ready_at = new Date().toISOString();
+            } else if (newStatus === 'out_for_delivery') {
+                updateData.out_for_delivery_at = new Date().toISOString();
+            } else if (newStatus === 'delivered') {
+                updateData.delivered_at = new Date().toISOString();
+            } else if (newStatus === 'cancelled') {
+                updateData.cancelled_at = new Date().toISOString();
+            }
+
             // Update in Supabase database
             if (typeof window.supabaseClient !== 'undefined') {
                 const { error } = await window.supabaseClient
                     .from('orders')
-                    .update({ status: newStatus })
+                    .update(updateData)
                     .eq('id', currentEditingOrderId);
                 
                 if (error) {
@@ -488,6 +509,16 @@ async function confirmStatusUpdate() {
                     showMessage('Failed to update order status', 'error');
                     return;
                 }
+            }
+            
+            // Create scheduled Borzo delivery request when order is half ready
+            if (newStatus === 'half_ready' && order.status !== 'half_ready') {
+                await createBorzoDeliveryRequest(order);
+            }
+            
+            // Create immediate Borzo delivery request when order is ready for pickup
+            if (newStatus === 'out_for_delivery' && order.status !== 'out_for_delivery') {
+                await createImmediateBorzoDeliveryRequest(order);
             }
             
             // Update local array
@@ -506,6 +537,118 @@ async function confirmStatusUpdate() {
     }
     
     closeStatusModal();
+}
+
+// Create Borzo delivery request
+async function createBorzoDeliveryRequest(order) {
+    try {
+        // Initialize Borzo integration
+        const borzoIntegration = new BorzoIntegration();
+        
+        // Prepare delivery address from order
+        const deliveryAddress = {
+            line1: order.billing_address.street,
+            line2: order.billing_address.landmark || '',
+            city: order.billing_address.city,
+            state: order.billing_address.state,
+            pincode: order.billing_address.pincode,
+            firstName: order.customer_first_name,
+            lastName: order.customer_last_name,
+            phone: order.customer_phone,
+            instructions: order.delivery_instructions || 'Please handle with care - fresh fruits and sprouts'
+        };
+
+        // Create delivery request with Borzo
+        const borzoResult = await borzoIntegration.createDeliveryRequest(order, deliveryAddress);
+        
+        if (borzoResult.success) {
+            // Update order with Borzo information
+            const borzoUpdateData = {
+                borzo_order_id: borzoResult.borzoOrderId,
+                borzo_tracking_url: borzoResult.trackingUrl,
+                borzo_status: 'new',
+                borzo_status_text: 'Delivery request created',
+                borzo_estimated_delivery: borzoResult.estimatedDeliveryTime
+            };
+
+            if (typeof window.supabaseClient !== 'undefined') {
+                const { error } = await window.supabaseClient
+                    .from('orders')
+                    .update(borzoUpdateData)
+                    .eq('id', order.id);
+                
+                if (error) {
+                    console.error('Error updating Borzo info:', error);
+                } else {
+                    console.log(`✅ Borzo delivery created for order ${order.order_number}: ${borzoResult.borzoOrderId}`);
+                    showMessage(`Borzo delivery request created successfully! Tracking ID: ${borzoResult.borzoOrderId}`, 'success');
+                }
+            }
+        } else {
+            console.error('❌ Borzo delivery request failed:', borzoResult.error);
+            showMessage(`Warning: Order status updated but Borzo delivery request failed: ${borzoResult.error}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error creating Borzo delivery request:', error);
+        showMessage(`Warning: Order status updated but Borzo delivery request failed: ${error.message}`, 'error');
+    }
+}
+
+// Create immediate Borzo delivery request (when order is ready for pickup)
+async function createImmediateBorzoDeliveryRequest(order) {
+    try {
+        // Initialize Borzo integration
+        const borzoIntegration = new BorzoIntegration();
+        
+        // Prepare delivery address from order
+        const deliveryAddress = {
+            line1: order.billing_address.street,
+            line2: order.billing_address.landmark || '',
+            city: order.billing_address.city,
+            state: order.billing_address.state,
+            pincode: order.billing_address.pincode,
+            firstName: order.customer_first_name,
+            lastName: order.customer_last_name,
+            phone: order.customer_phone,
+            instructions: order.delivery_instructions || 'Please handle with care - fresh fruits and sprouts'
+        };
+
+        // Create immediate delivery request with Borzo
+        const borzoResult = await borzoIntegration.createImmediateDeliveryRequest(order, deliveryAddress);
+        
+        if (borzoResult.success) {
+            // Update order with Borzo information
+            const borzoUpdateData = {
+                borzo_order_id: borzoResult.borzoOrderId,
+                borzo_tracking_url: borzoResult.trackingUrl,
+                borzo_status: 'new',
+                borzo_status_text: 'Ready for immediate pickup',
+                borzo_estimated_delivery: borzoResult.estimatedDeliveryTime
+            };
+
+            if (typeof window.supabaseClient !== 'undefined') {
+                const { error } = await window.supabaseClient
+                    .from('orders')
+                    .update(borzoUpdateData)
+                    .eq('id', order.id);
+                
+                if (error) {
+                    console.error('Error updating Borzo info:', error);
+                } else {
+                    console.log(`✅ Immediate Borzo delivery created for order ${order.order_number}: ${borzoResult.borzoOrderId}`);
+                    showMessage(`Order ready! Immediate delivery request created. Tracking ID: ${borzoResult.borzoOrderId}`, 'success');
+                }
+            }
+        } else {
+            console.error('❌ Immediate Borzo delivery request failed:', borzoResult.error);
+            showMessage(`Warning: Order status updated but immediate delivery request failed: ${borzoResult.error}`, 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error creating immediate Borzo delivery request:', error);
+        showMessage(`Warning: Order status updated but immediate delivery request failed: ${error.message}`, 'error');
+    }
 }
 
 // Show message notification

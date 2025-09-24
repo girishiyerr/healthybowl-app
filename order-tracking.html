@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="global-styles.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="borzo-integration.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -141,6 +142,25 @@
                                 <p><span class="font-medium">Pincode:</span> <span id="deliveryPincode"></span></p>
                                 <p><span class="font-medium">Instructions:</span> <span id="deliveryInstructions"></span></p>
                             </div>
+                            
+                            <!-- Borzo Tracking Section -->
+                            <div id="borzoTrackingSection" class="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200 hidden">
+                                <h4 class="text-md font-semibold text-blue-900 mb-2 flex items-center">
+                                    <i class="fas fa-truck mr-2"></i>
+                                    Live Delivery Tracking
+                                </h4>
+                                <div class="space-y-2 text-sm">
+                                    <p><span class="font-medium text-blue-800">Delivery Partner:</span> <span id="borzoStatus" class="text-blue-700"></span></p>
+                                    <p><span class="font-medium text-blue-800">Status:</span> <span id="borzoStatusText" class="text-blue-700"></span></p>
+                                    <p><span class="font-medium text-blue-800">Estimated Delivery:</span> <span id="borzoEstimatedDelivery" class="text-blue-700"></span></p>
+                                    <div class="mt-3">
+                                        <a id="borzoTrackingLink" href="#" target="_blank" class="inline-flex items-center px-3 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition-colors">
+                                            <i class="fas fa-external-link-alt mr-2"></i>
+                                            Track on Borzo
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -194,6 +214,19 @@
                                     <h3 class="text-lg font-semibold text-gray-900">Preparing Your Order</h3>
                                     <p class="text-gray-600">Fresh ingredients are being prepared for your order</p>
                                     <p class="text-sm text-gray-500 mt-1" id="preparingTime"></p>
+                                </div>
+                            </div>
+
+                            <!-- Half Ready (Delivery Partner Search) -->
+                            <div class="tracking-step relative flex items-start space-x-4 p-4 rounded-xl" id="step-half-ready">
+                                <div class="flex-shrink-0 w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center">
+                                    <svg class="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-lg font-semibold text-gray-900">Half Ready - Finding Delivery Partner</h3>
+                                    <p class="text-sm text-gray-500 mt-1" id="halfReadyTime">Order is half ready, searching for delivery partner...</p>
                                 </div>
                             </div>
 
@@ -419,6 +452,9 @@
             document.getElementById('deliveryPincode').textContent = pincode
             document.getElementById('deliveryInstructions').textContent = order.delivery_instructions || 'No special instructions'
             
+            // Populate Borzo tracking information if available
+            populateBorzoTracking(order)
+            
             // Order items
             const orderItems = document.getElementById('orderItems')
             orderItems.innerHTML = ''
@@ -443,13 +479,160 @@
             document.getElementById('orderTotal').textContent = `₹${order.total_amount.toLocaleString()}`
         }
 
+        // Populate Borzo tracking information
+        function populateBorzoTracking(order) {
+            const borzoSection = document.getElementById('borzoTrackingSection')
+            
+            // Check if order has Borzo tracking information
+            if (order.borzo_order_id && order.borzo_status) {
+                // Show Borzo tracking section
+                borzoSection.classList.remove('hidden')
+                
+                // Populate Borzo information
+                document.getElementById('borzoStatus').textContent = formatBorzoStatus(order.borzo_status)
+                document.getElementById('borzoStatusText').textContent = order.borzo_status_text || 'Status update pending'
+                
+                // Format estimated delivery time
+                if (order.borzo_estimated_delivery) {
+                    const estimatedTime = new Date(order.borzo_estimated_delivery)
+                    document.getElementById('borzoEstimatedDelivery').textContent = estimatedTime.toLocaleString('en-IN', {
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    })
+                } else {
+                    document.getElementById('borzoEstimatedDelivery').textContent = 'Not available'
+                }
+                
+                // Set up tracking link
+                const trackingLink = document.getElementById('borzoTrackingLink')
+                if (order.borzo_tracking_url) {
+                    trackingLink.href = order.borzo_tracking_url
+                    trackingLink.classList.remove('hidden')
+                } else {
+                    trackingLink.classList.add('hidden')
+                }
+                
+                // Add refresh button for live updates
+                addBorzoRefreshButton(order.borzo_order_id)
+            } else {
+                // Hide Borzo tracking section if no Borzo data
+                borzoSection.classList.add('hidden')
+            }
+        }
+        
+        // Add refresh button for Borzo status
+        function addBorzoRefreshButton(borzoOrderId) {
+            const borzoSection = document.getElementById('borzoTrackingSection')
+            
+            // Remove existing refresh button if any
+            const existingRefreshBtn = document.getElementById('borzoRefreshBtn')
+            if (existingRefreshBtn) {
+                existingRefreshBtn.remove()
+            }
+            
+            // Add refresh button
+            const refreshBtn = document.createElement('button')
+            refreshBtn.id = 'borzoRefreshBtn'
+            refreshBtn.className = 'ml-3 inline-flex items-center px-3 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition-colors'
+            refreshBtn.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Refresh Status'
+            refreshBtn.onclick = () => refreshBorzoStatus(borzoOrderId)
+            
+            // Add to the tracking link container
+            const linkContainer = document.querySelector('#borzoTrackingLink').parentElement
+            linkContainer.appendChild(refreshBtn)
+        }
+        
+        // Refresh Borzo status
+        async function refreshBorzoStatus(borzoOrderId) {
+            try {
+                const borzoIntegration = new BorzoIntegration()
+                const result = await borzoIntegration.getDeliveryStatus(borzoOrderId)
+                
+                if (result.success) {
+                    // Update the display with new status
+                    document.getElementById('borzoStatus').textContent = formatBorzoStatus(result.status)
+                    document.getElementById('borzoStatusText').textContent = result.statusText || 'Status updated'
+                    
+                    if (result.estimatedDeliveryTime) {
+                        const estimatedTime = new Date(result.estimatedDeliveryTime)
+                        document.getElementById('borzoEstimatedDelivery').textContent = estimatedTime.toLocaleString('en-IN', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                        })
+                    }
+                    
+                    // Show success message
+                    showMessage('Delivery status updated!', 'success')
+                } else {
+                    showMessage('Failed to refresh delivery status', 'error')
+                }
+            } catch (error) {
+                console.error('Error refreshing Borzo status:', error)
+                showMessage('Failed to refresh delivery status', 'error')
+            }
+        }
+        
+        // Format Borzo status for display
+        function formatBorzoStatus(status) {
+            const statusMap = {
+                'new': 'New Request',
+                'accepted': 'Accepted',
+                'picked_up': 'Picked Up',
+                'in_progress': 'In Transit',
+                'delivered': 'Delivered',
+                'cancelled': 'Cancelled',
+                'failed': 'Failed'
+            }
+            return statusMap[status] || status
+        }
+        
+        // Show message notification
+        function showMessage(message, type = 'success') {
+            // Remove existing message if any
+            const existingMessage = document.getElementById('messageNotification')
+            if (existingMessage) {
+                existingMessage.remove()
+            }
+            
+            // Create message element
+            const messageDiv = document.createElement('div')
+            messageDiv.id = 'messageNotification'
+            messageDiv.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg transition-all duration-300 ${
+                type === 'success' 
+                    ? 'bg-green-500 text-white' 
+                    : 'bg-red-500 text-white'
+            }`
+            messageDiv.textContent = message
+            
+            // Add to page
+            document.body.appendChild(messageDiv)
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                if (messageDiv.parentNode) {
+                    messageDiv.style.opacity = '0'
+                    messageDiv.style.transform = 'translateX(100%)'
+                    setTimeout(() => {
+                        if (messageDiv.parentNode) {
+                            messageDiv.remove()
+                        }
+                    }, 300)
+                }
+            }, 3000)
+        }
+
         // Update order status timeline
         function updateOrderStatus(status, paymentStatus) {
             const statusSteps = {
                 'pending': ['step-placed'],
                 'confirmed': ['step-placed', 'step-confirmed'],
                 'preparing': ['step-placed', 'step-confirmed', 'step-preparing'],
-                'out_for_delivery': ['step-placed', 'step-confirmed', 'step-preparing', 'step-delivery'],
+                'half_ready': ['step-placed', 'step-confirmed', 'step-preparing', 'step-half-ready'],
+                'out_for_delivery': ['step-placed', 'step-confirmed', 'step-preparing', 'step-half-ready', 'step-delivery'],
                 'delivered': ['step-placed', 'step-confirmed', 'step-preparing', 'step-delivery', 'step-delivered']
             }
             

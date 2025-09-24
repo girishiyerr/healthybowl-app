@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Borzo Callback Handler</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="borzo-integration.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .info { background-color: #d1ecf1; color: #0c5460; }
+        pre {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Borzo Callback Handler</h1>
+        <p>This endpoint receives status updates from Borzo delivery service.</p>
+        
+        <div id="status" class="status info">
+            Waiting for callback data...
+        </div>
+        
+        <div id="details" style="display: none;">
+            <h3>Callback Details:</h3>
+            <pre id="callbackData"></pre>
+        </div>
+        
+        <div id="processing" style="display: none;">
+            <h3>Processing Result:</h3>
+            <pre id="processingResult"></pre>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Supabase
+        const supabaseUrl = 'https://awnmurxunaenwzluhwge.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF3bm11cnh1bmFlbnd6bHVod2dlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzMxNzQ4NzQsImV4cCI6MjA0ODc1MDg3NH0.8Q5qJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJqJq';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        // Initialize Borzo integration
+        const borzoIntegration = new BorzoIntegration();
+
+        // Process callback data
+        async function processCallback() {
+            try {
+                // Get callback data from URL parameters or request body
+                const urlParams = new URLSearchParams(window.location.search);
+                const callbackData = {};
+                
+                // Parse callback data (this will depend on how Borzo sends the data)
+                for (const [key, value] of urlParams.entries()) {
+                    callbackData[key] = value;
+                }
+
+                // Verify callback token for security
+                const expectedToken = '095B396436F61688AA44AC771A38839E4067021C';
+                const receivedToken = callbackData.token || callbackData.callback_token;
+                
+                if (receivedToken && receivedToken !== expectedToken) {
+                    document.getElementById('status').innerHTML = '❌ Invalid callback token. Unauthorized access.';
+                    document.getElementById('status').className = 'status error';
+                    return;
+                }
+
+                // If no URL parameters, try to get from POST body (for server-side processing)
+                if (Object.keys(callbackData).length === 0) {
+                    // This would be handled by server-side code in a real implementation
+                    document.getElementById('status').innerHTML = 'No callback data received. This endpoint should be called by Borzo with POST data.';
+                    document.getElementById('status').className = 'status error';
+                    return;
+                }
+
+                // Display received data
+                document.getElementById('callbackData').textContent = JSON.stringify(callbackData, null, 2);
+                document.getElementById('details').style.display = 'block';
+
+                // Process the callback
+                const result = borzoIntegration.processCallback(callbackData);
+                
+                if (result.success) {
+                    // Update order in database
+                    await updateOrderStatus(result);
+                    
+                    document.getElementById('status').innerHTML = '✅ Callback processed successfully!';
+                    document.getElementById('status').className = 'status success';
+                } else {
+                    document.getElementById('status').innerHTML = `❌ Error processing callback: ${result.error}`;
+                    document.getElementById('status').className = 'status error';
+                }
+
+                // Display processing result
+                document.getElementById('processingResult').textContent = JSON.stringify(result, null, 2);
+                document.getElementById('processing').style.display = 'block';
+
+            } catch (error) {
+                console.error('Callback processing error:', error);
+                document.getElementById('status').innerHTML = `❌ Error: ${error.message}`;
+                document.getElementById('status').className = 'status error';
+            }
+        }
+
+        // Update order status in database
+        async function updateOrderStatus(callbackResult) {
+            try {
+                const { borzoOrderId, borzoStatus, internalStatus, statusText, timestamp } = callbackResult;
+
+                // Find order by Borzo order ID
+                const { data: order, error: findError } = await supabase
+                    .from('orders')
+                    .select('*')
+                    .eq('borzo_order_id', borzoOrderId)
+                    .single();
+
+                if (findError) {
+                    throw new Error(`Order not found: ${findError.message}`);
+                }
+
+                // Update order with new status
+                const updateData = {
+                    borzo_status: borzoStatus,
+                    borzo_status_text: statusText,
+                    updated_at: new Date().toISOString()
+                };
+
+                // Update internal status if needed
+                if (internalStatus === 'delivered') {
+                    updateData.status = 'delivered';
+                    updateData.delivered_at = new Date().toISOString();
+                } else if (internalStatus === 'cancelled') {
+                    updateData.status = 'cancelled';
+                    updateData.cancelled_at = new Date().toISOString();
+                }
+
+                const { error: updateError } = await supabase
+                    .from('orders')
+                    .update(updateData)
+                    .eq('id', order.id);
+
+                if (updateError) {
+                    throw new Error(`Failed to update order: ${updateError.message}`);
+                }
+
+                console.log(`Order ${order.order_number} updated with Borzo status: ${borzoStatus}`);
+
+            } catch (error) {
+                console.error('Database update error:', error);
+                throw error;
+            }
+        }
+
+        // Process callback when page loads
+        document.addEventListener('DOMContentLoaded', processCallback);
+
+        // For server-side implementation, you would also need:
+        /*
+        // Express.js example for server-side callback handling
+        app.post('/borzo-callback', express.json(), async (req, res) => {
+            try {
+                const callbackData = req.body;
+                const result = borzoIntegration.processCallback(callbackData);
+                
+                if (result.success) {
+                    await updateOrderStatus(result);
+                    res.status(200).json({ success: true, message: 'Callback processed' });
+                } else {
+                    res.status(400).json({ success: false, error: result.error });
+                }
+            } catch (error) {
+                res.status(500).json({ success: false, error: error.message });
+            }
+        });
+        */
+    </script>
+</body>
+</html>

@@ -110,6 +110,7 @@ CREATE TABLE orders (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
     confirmed_at TIMESTAMP WITH TIME ZONE,
     preparing_at TIMESTAMP WITH TIME ZONE,
+    half_ready_at TIMESTAMP WITH TIME ZONE,
     out_for_delivery_at TIMESTAMP WITH TIME ZONE,
     delivered_at TIMESTAMP WITH TIME ZONE,
     cancelled_at TIMESTAMP WITH TIME ZONE,
@@ -117,7 +118,15 @@ CREATE TABLE orders (
     -- Tracking information
     estimated_delivery_time TIMESTAMP WITH TIME ZONE,
     delivery_notes TEXT,
-    tracking_notes TEXT
+    tracking_notes TEXT,
+    
+    -- Borzo delivery integration
+    borzo_order_id VARCHAR(255), -- Borzo's order ID
+    borzo_tracking_url TEXT, -- Borzo's tracking URL
+    borzo_status VARCHAR(50), -- Current Borzo delivery status
+    borzo_status_text TEXT, -- Human readable Borzo status
+    borzo_estimated_delivery TIMESTAMP WITH TIME ZONE, -- Borzo's estimated delivery time
+    borzo_delivery_notes TEXT -- Notes from Borzo delivery
 );
 
 -- Order items
